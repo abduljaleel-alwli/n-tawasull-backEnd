@@ -1,0 +1,217 @@
+@import "tailwindcss";
+@import "../../vendor/livewire/flux/dist/flux.css";
+
+/* ===============================
+   Sources
+================================ */
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+
+/* ===============================
+   Dark variant
+================================ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ===============================
+   Theme
+================================ */
+@theme {
+    --font-sans: "Tajawal", ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
+
+    /* Accent */
+    --color-accent: var(--v-color-secondary);
+    --color-accent-content: var(--v-color-secondary);
+    --color-accent-foreground: var(--v-color-accent);
+}
+
+@layer theme {
+    .dark {
+        --color-accent: var(--v-color-secondary);
+        --color-accent-content: var(--v-color-secondary);
+        --color-accent-foreground: var(--v-color-accent);
+    }
+}
+/* ===============================
+   Base
+================================ */
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+}
+
+/* ===============================
+   Flux helpers
+================================ */
+[data-flux-field]:not(ui-radio, ui-checkbox) {
+    @apply grid gap-2;
+}
+
+[data-flux-label] {
+    @apply !mb-0 !leading-tight;
+}
+
+input:focus[data-flux-control],
+textarea:focus[data-flux-control],
+select:focus[data-flux-control] {
+    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+}
+/* ===============================
+   Global Form Inputs – Pro Style
+   Light + Dark
+================================ */
+
+input,
+textarea,
+select {
+    @apply
+        w-full
+        rounded-lg
+        border
+        border-zinc-300
+        bg-white
+        text-zinc-900
+        placeholder:text-zinc-400
+        transition
+        duration-200
+        p-2
+        ease-out;
+}
+
+/* Dark mode base */
+.dark input,
+.dark textarea,
+.dark select {
+    @apply
+        border-zinc-600
+        bg-slate-700
+        text-slate-100
+        placeholder:text-slate-500;
+}
+
+/* Focus state */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    @apply
+        outline-none
+        ring-1
+        ring-accent/70
+        border-accent
+        ring-offset-2
+        ring-offset-white;
+}
+
+/* Dark focus */
+.dark input:focus-visible,
+.dark textarea:focus-visible,
+.dark select:focus-visible {
+    @apply
+        ring-offset-zinc-900
+        border-accent/80;
+}
+
+
+/* ===============================
+   Accent helpers
+================================ */
+.bg-accent {
+    background-color: var(--v-color-accent);
+}
+
+.text-accent {
+    color: var(--v-color-accent);
+}
+
+.bg-secondary {
+    background-color: var(--v-color-secondary);
+}
+
+.text-secondary {
+    color: var(--v-color-secondary);
+}
+
+/* ===============================
+   🔥 CRITICAL PART 🔥
+   Override ONLY backgrounds
+================================ */
+
+/* Dark mode backgrounds */
+.dark .dark\:bg-zinc-800 {
+    background-color: var(--v-color-theme-background-primary) !important;
+}
+
+.dark .dark\:bg-zinc-900 {
+    background-color: var(--v-color-theme-background-secondary) !important;
+}
+
+/* Optional: light mode tweak if needed */
+.bg-zinc-50 {
+    background-color: #ffffff;
+}
+
+/* ===============================
+   Data states
+================================ */
+.data-current\:text-\(--color-accent-content\)[data-current] {
+    color: var(--color-accent-content);
+    background-color: var(--v-color-theme-background-primary);
+}
+/* 
+body[data-theme='dark'] .data-current\:text-\(--color-accent-content\)[data-current] {
+    color: var(--color-accent-content);
+} */
+
+div[data-flux-main]{
+    background-color: var(--v-color-theme-background-primary);
+}
+
+/* Admin logo */
+.admin-logo{
+    filter: drop-shadow(0 8px 29px #ffff);
+}
+
+.admin-logo-box {
+    margin: 0 15px;
+    padding: 10px 0;
+}
+
+.admin-logo-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+
+    background: #ffffff; /* ✅ أبيض فقط هنا */
+    border-radius: 16px; /* انحناء مثل الصورة */
+
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.06));
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    
+    color: #071225 !important;
+    z-index: 2;
+
+    color: var(--background-color) !important;
+    letter-spacing: 0.2px;
+    /* box-shadow: -8px 0 18px rgba(255, 255, 255, 0.35); */
+
+    font-size: 25px !important;
+}
+
+.admin-logo-box div{
+    color: var(--v-color-accent)
+}
+
+.admin-logo-box span{
+    font-size: 17px;
+}
