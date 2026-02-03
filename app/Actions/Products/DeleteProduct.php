@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Support\Auditable;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class DeleteProduct
 {
@@ -15,27 +16,46 @@ class DeleteProduct
     {
         Gate::authorize('delete', $product);
 
-        // 🔴 Delete main image
-        if ($product->main_image) {
-            Storage::disk('public')->delete($product->main_image);
-        }
+        DB::transaction(function () use ($product) {
 
-        // 🔴 Delete gallery images
-        if (is_array($product->images)) {
-            foreach ($product->images as $image) {
-                Storage::disk('public')->delete($image);
+            /* =====================
+               Detach Tags (IMPORTANT)
+            ===================== */
+
+            $product->tags()->detach();
+
+            /* =====================
+               Delete Images
+            ===================== */
+
+            if ($product->main_image) {
+                Storage::disk('public')->delete($product->main_image);
             }
-        }
 
-        $product->delete();
+            if (is_array($product->images)) {
+                foreach ($product->images as $image) {
+                    Storage::disk('public')->delete($image);
+                }
+            }
 
-        $this->audit(
-            'product.deleted',
-            $product,
-            [
-                'title' => $product->title,
-            ]
-        );
+            /* =====================
+               Soft Delete Product
+            ===================== */
 
+            $product->forceDelete();
+
+            /* =====================
+               Audit
+            ===================== */
+
+            $this->audit(
+                'product.deleted',
+                $product,
+                [
+                    'title' => $product->title,
+                    'tags'  => $product->tags->pluck('name')->toArray(),
+                ]
+            );
+        });
     }
 }

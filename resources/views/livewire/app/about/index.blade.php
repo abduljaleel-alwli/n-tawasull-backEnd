@@ -159,7 +159,7 @@ new class extends Component {
             <!-- Stats -->
             <div class="text-center mt-5">
                 <h2 class="aflaak-sec-title">
-                    لماذا أفلاك؟
+                    لماذا نقطة تواصل؟
                 </h2>
             </div>
 

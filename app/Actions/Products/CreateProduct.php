@@ -5,9 +5,7 @@ namespace App\Actions\Products;
 use App\Models\Product;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-
 use App\Support\Auditable;
 
 class CreateProduct
@@ -21,41 +19,63 @@ class CreateProduct
     {
         Gate::authorize('create', Product::class);
 
-        // Handle main image upload
-        $mainImagePath = null;
-        if (!empty($data['main_image'])) {
-            $mainImagePath = $data['main_image']->store('products', 'public');
-        }
+        return DB::transaction(function () use ($data) {
 
-        // Handle gallery images upload
-        $images = [];
-        if (!empty($data['images']) && is_array($data['images'])) {
-            foreach ($data['images'] as $image) {
-                $images[] = $image->store('products/gallery', 'public');
+            /* =====================
+               Images Handling
+            ===================== */
+
+            $mainImagePath = null;
+            if (!empty($data['main_image'])) {
+                $mainImagePath = $data['main_image']->store('products', 'public');
             }
-        }
 
-        // 🔢 Calculate next display order
-        $nextOrder = Product::max('display_order') ?? 0;
-        $nextOrder++;
+            $images = [];
+            if (!empty($data['images']) && is_array($data['images'])) {
+                foreach ($data['images'] as $image) {
+                    $images[] = $image->store('products/gallery', 'public');
+                }
+            }
 
-        $product = Product::create([
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
-            'category_id' => $data['category_id'] ?? null,
-            'main_image' => $mainImagePath,
-            'images' => $images,
-            'is_active' => $data['is_active'] ?? true,
-            'display_order' => $nextOrder,
-            'meta_title' => $data['meta_title'] ?? null,
-            'meta_description' => $data['meta_description'] ?? null,
-            'created_by' => Auth::id(),
-        ]);
+            /* =====================
+               Display Order
+            ===================== */
 
-        $this->audit('product.created', $product, [
-            'title' => $product->title,
-        ]);
+            $nextOrder = (Product::max('display_order') ?? 0) + 1;
 
-        return $product;
+            /* =====================
+               Create Product
+            ===================== */
+
+            $product = Product::create([
+                'title' => $data['title'],
+                'description' => $data['description'] ?? null,
+                'category_id' => $data['category_id'] ?? null,
+                'main_image' => $mainImagePath,
+                'images' => $images,
+                'is_active' => $data['is_active'] ?? true,
+                'display_order' => $nextOrder,
+                'created_by' => Auth::id(),
+            ]);
+
+            /* =====================
+               Sync Tags (NEW)
+            ===================== */
+
+            if (!empty($data['tags']) && is_array($data['tags'])) {
+                $product->syncTags($data['tags']);
+            }
+
+            /* =====================
+               Audit
+            ===================== */
+
+            $this->audit('product.created', $product, [
+                'title' => $product->title,
+                'tags'  => $product->tags->pluck('name')->toArray(),
+            ]);
+
+            return $product;
+        });
     }
 }

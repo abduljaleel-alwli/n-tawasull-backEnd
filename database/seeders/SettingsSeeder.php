@@ -16,8 +16,8 @@ class SettingsSeeder extends Seeder
 
         // ---> Settings 
         // General
-        $s->set('site_name', 'أفلاك', 'string', 'general');
-        $s->set('site_description', 'أفلاك شركة متخصصة في توريد الحديد والصاج والمواسير والزوايا والجسور بمقاسات متعددة وجودة عالية، لخدمة مشاريع البناء والصناعة بأفضل الأسعار والتسليم السريع.', 'text', 'general');
+        $s->set('site_name', 'نقطة تواصل', 'string', 'general');
+        $s->set('site_description', 'نقطة تواصل شركة متخصصة في توريد الحديد والصاج والمواسير والزوايا والجسور بمقاسات متعددة وجودة عالية، لخدمة مشاريع البناء والصناعة بأفضل الأسعار والتسليم السريع.', 'text', 'general');
 
         // Branding
         $s->set('branding.logo', null, 'image', 'branding');
@@ -29,9 +29,9 @@ class SettingsSeeder extends Seeder
         $s->set('colors.background', '#0b1220', 'color', 'colors');
 
         // SEO
-        $s->set('seo.meta_title', 'أفلاك | توريد وتجارة مواد البناء', 'string', 'seo');
-        $s->set('seo.meta_description', 'أفلاك لتوريد وتجارة مواد البناء: حديد، صفائح، مواسير، شبك وحديد تسليح، مع خدمات قص وتشكيل وتوصيل سريع.', 'text', 'seo');
-        $s->set('seo.keywords', 'أفلاك, حديد, مواسير, صفائح, مواد بناء, توريد, قص حديد, شبك, تسليح', 'text', 'seo');
+        $s->set('seo.meta_title', 'نقطة تواصل', 'string', 'seo');
+        $s->set('seo.meta_description', 'نقطة تواصل لتوريد وتجارة مواد البناء: حديد، صفائح، مواسير، شبك وحديد تسليح، مع خدمات قص وتشكيل وتوصيل سريع.', 'text', 'seo');
+        $s->set('seo.keywords', 'نقطة تواصل, حديد, مواسير, صفائح, مواد بناء, توريد, قص حديد, شبك, تسليح', 'text', 'seo');
 
         // Scripts
         $s->set('scripts.head', null, 'string', 'scripts');
@@ -89,7 +89,7 @@ class SettingsSeeder extends Seeder
 
         $s->set(
             'contact.email_subject',
-            'رسالة جديدة نموذج تواصل معنا (أفلاك)',
+            'رسالة جديدة نموذج تواصل معنا (نقطة تواصل)',
             'string',
             'contact'
         );
@@ -150,7 +150,7 @@ class SettingsSeeder extends Seeder
 
         $s->set(
             'about.description',
-            'أفلاك شركة متخصصة في توريد الحديد والصاج والمواسير والزوايا والجسور بمقاسات متعددة وجودة عالية، لخدمة مشاريع البناء والصناعة بأفضل الأسعار والتسليم السريع.',
+            'نقطة تواصل شركة متخصصة في توريد الحديد والصاج والمواسير والزوايا والجسور بمقاسات متعددة وجودة عالية، لخدمة مشاريع البناء والصناعة بأفضل الأسعار والتسليم السريع.',
             'text',
             'about'
         );

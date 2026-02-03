@@ -105,7 +105,7 @@ new class extends Component {
                             {{-- Content --}}
                             <div class="col-md-6">
                                 <h4 class="fw-bold mb-3">
-                                    {{ $product->meta_title ?? $product->title }}
+                                    {{ $product->title }}
                                 </h4>
 
                                 @if ($product->description)

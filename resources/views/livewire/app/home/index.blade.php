@@ -73,7 +73,7 @@ new class extends Component {
                     <div class="hero-content ms-5">
                         <div class="section-title">
                             <h1 class="text-light accent-color" data-cursor="-opaque">
-                                أفلاك للفولاذ <br>
+                                نقطة تواصل <br>
                             </h1>
                             <h3 class="mt-3"> مواد البناء التي يعتمد عليها مشروعك </h3>
                             <p class="wow fadeInUp" data-wow-delay="0.2s">
@@ -192,7 +192,7 @@ new class extends Component {
                 <div class="col-xl-7">
                     <div class="about-us-content">
                         <div class="section-title">
-                            <h2 class="mt-3" data-cursor="-opaque">أفلاك للفولاذ … شريك التوريد الذي يضمن لك نجاح
+                            <h2 class="mt-3" data-cursor="-opaque">نقطة تواصل … شريك التوريد الذي يضمن لك نجاح
                                 عملك </h2>
                             <p class="text-dark" data-wow-delay="0.2s">
                                 نحن شركة متخصصة في توريد وتجارة مواد البناء والمعادن، نركّز على توفير مواد موثوقة

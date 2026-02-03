@@ -130,9 +130,6 @@ class ProductsSeeder extends Seeder
                 'description' => $product['description'],
                 'category_id' => $categories[$product['category']] ?? null,
 
-                'meta_title' => $product['title'],
-                'meta_description' => $product['description'],
-
                 'is_active' => true,
                 'display_order' => $index + 1,
 

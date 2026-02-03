@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Concerns\HasTags;
 use App\Models\Category;
 use App\Models\User;
 
@@ -12,6 +13,7 @@ class Product extends Model
 {
     use HasFactory;
     use SoftDeletes;
+    use HasTags;
 
     /**
      * The attributes that are mass assignable.
@@ -25,8 +27,6 @@ class Product extends Model
         'is_active',
         'display_order',
         'created_by',
-        'meta_title',
-        'meta_description',
     ];
 
     /**
@@ -50,6 +50,12 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function tags()
+    {
+        return $this->morphToMany(Tag::class, 'taggable');
+    }
+
 
     /* =====================
        Scopes (Important)

@@ -112,8 +112,7 @@ new class extends Component {
             @foreach ($this->products as $product)
                 @if ($product->is_active)
                     <article class="cardx" data-cat="{{ $product->category?->slug }}"
-                        data-title="{{ $product->title }}" data-meta-title="{{ $product->meta_title }}"
-                        data-meta-description="{{ Str::limit(strip_tags($product->meta_description), 160) }}"
+                        data-title="{{ $product->title }}"
                         style="animation-delay:.05s;">
                         <div class="inner">
                             <div class="thumb">
@@ -177,7 +176,7 @@ new class extends Component {
 
     <!-- ================== TIMELINE ================== -->
     <div class="section-head mx-auto" style="margin-top: 40px;">
-        <h2>كيف تطلب من أفلاك؟</h2>
+        <h2>كيف تطلب من نقطة تواصل؟</h2>
     </div>
 
     <section class="timeline mb-5">

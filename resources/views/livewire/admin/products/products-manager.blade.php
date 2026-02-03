@@ -5,6 +5,7 @@ use Livewire\WithFileUploads;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Tag;
 use App\Actions\Products\CreateProduct;
 use App\Actions\Products\UpdateProduct;
 use App\Actions\Products\DeleteProduct;
@@ -19,7 +20,6 @@ new class extends Component {
     public string $search = '';
     public string $statusFilter = 'all'; // all | active | inactive
     public ?int $categoryFilter = null;
-
 
     /** Listing */
     public $products;
@@ -39,9 +39,16 @@ new class extends Component {
     public ?int $category_id = null;
     public $main_image = null;
     public array $images = [];
+
+    /** Tags */
+    public array $tags = []; // للـ form (strings)
+    public string $tagsInput = ''; // input مؤقت (comma separated)
+
     public bool $is_active = true;
-    public string $meta_title = '';
-    public string $meta_description = '';
+
+    public array $selectedTags = [];
+    public $allTags;
+
 
     /** Data */
     public $categories = [];
@@ -55,29 +62,23 @@ new class extends Component {
             ->orderBy('name')
             ->get(['id', 'name']);
 
+        $this->allTags = Tag::orderBy('name')->get();
+
         $this->loadProducts();
     }
 
-public function loadProducts(): void
-{
-    $this->products = Product::query()
-        ->when($this->search, function ($q) {
-            $q->where('title', 'like', "%{$this->search}%")
-              ->orWhere('description', 'like', "%{$this->search}%");
-        })
-        ->when($this->statusFilter === 'active', fn ($q) =>
-            $q->where('is_active', true)
-        )
-        ->when($this->statusFilter === 'inactive', fn ($q) =>
-            $q->where('is_active', false)
-        )
-        ->when($this->categoryFilter, fn ($q) =>
-            $q->where('category_id', $this->categoryFilter)
-        )
-        ->orderBy('display_order')
-        ->get();
-}
-
+    public function loadProducts(): void
+    {
+        $this->products = Product::with(['category', 'tags'])->query()
+            ->when($this->search, function ($q) {
+                $q->where('title', 'like', "%{$this->search}%")->orWhere('description', 'like', "%{$this->search}%");
+            })
+            ->when($this->statusFilter === 'active', fn($q) => $q->where('is_active', true))
+            ->when($this->statusFilter === 'inactive', fn($q) => $q->where('is_active', false))
+            ->when($this->categoryFilter, fn($q) => $q->where('category_id', $this->categoryFilter))
+            ->orderBy('display_order')
+            ->get();
+    }
 
     public function updatedSearch(): void
     {
@@ -93,7 +94,6 @@ public function loadProducts(): void
     {
         $this->loadProducts();
     }
-
 
     public function create(): void
     {
@@ -111,8 +111,12 @@ public function loadProducts(): void
         $this->is_active = (bool) $product->is_active;
         $this->display_order = (int) $product->display_order;
 
-        $this->meta_title = (string) $product->meta_title;
-        $this->meta_description = (string) $product->meta_description;
+        // ✅ تحميل tags
+        $this->tags = $product->tags->pluck('name')->toArray();
+        $this->tagsInput = implode(', ', $this->tags);
+
+        $this->selectedTags = $product->tags->pluck('id')->toArray();
+
 
         $this->showModal = true;
     }
@@ -127,9 +131,30 @@ public function loadProducts(): void
             'images' => ['nullable', 'array'],
             'images.*' => ['nullable', 'image', 'max:10240'],
             'is_active' => ['boolean'],
-            'meta_title' => ['nullable', 'string', 'max:255'],
-            'meta_description' => ['nullable', 'string', 'max:500'],
+            'tagsInput' => ['nullable', 'string', 'max:255'],
         ]);
+
+        // 🔵 Prepare tags
+        $tags = [];
+
+        if (!empty($this->tagsInput)) {
+            $tags = collect(explode(',', $this->tagsInput))
+                ->map(fn($tag) => trim($tag))
+                ->filter()
+                ->unique()
+                ->values()
+                ->toArray();
+        }
+
+        $data['tags'] = $tags;
+
+        if ($this->editing) {
+    $product = $update->execute($this->editing, $data);
+} else {
+    $product = $create->execute($data);
+}
+
+        $product->tags()->sync($this->selectedTags);
 
         if ($this->editing) {
             $update->execute($this->editing, $data);
@@ -140,6 +165,7 @@ public function loadProducts(): void
 
             $this->toast('success', __('Product created successfully'));
         }
+
 
         $this->closeModal();
         $this->loadProducts();
@@ -221,7 +247,7 @@ public function loadProducts(): void
 
     private function resetForm(): void
     {
-        $this->reset(['editing', 'title', 'description', 'category_id', 'main_image', 'images', 'is_active', 'meta_title', 'meta_description']);
+        $this->reset(['editing', 'title', 'description', 'category_id', 'main_image', 'images', 'is_active', 'tags', 'tagsInput']);
 
         $this->is_active = true;
         $this->display_order = 0;
@@ -243,384 +269,357 @@ public function loadProducts(): void
 <div class="space-y-8">
 
     {{-- Stats cards --}}
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-    {{-- Total --}}
-    <button
-        wire:click="$set('statusFilter','all')"
-        class="text-left rounded-2xl p-4
+        {{-- Total --}}
+        <button wire:click="$set('statusFilter','all')"
+            class="text-left rounded-2xl p-4
                bg-white dark:bg-slate-900
                border border-slate-200 dark:border-slate-800
                flex items-center justify-between transition
-               {{ $statusFilter === 'all'
-                    ? 'ring-2 ring-accent/40'
-                    : 'hover:bg-slate-50 dark:hover:bg-slate-800/60' }}">
+               {{ $statusFilter === 'all' ? 'ring-2 ring-accent/40' : 'hover:bg-slate-50 dark:hover:bg-slate-800/60' }}">
 
-        <div>
-            <p class="text-xs text-slate-500">{{ __('Total products') }}</p>
-            <p class="text-2xl font-semibold text-slate-900 dark:text-white">
-                {{ $products->count() }}
-            </p>
-        </div>
+            <div>
+                <p class="text-xs text-slate-500">{{ __('Total products') }}</p>
+                <p class="text-2xl font-semibold text-slate-900 dark:text-white">
+                    {{ $products->count() }}
+                </p>
+            </div>
 
-        <flux:icon name="shopping-bag" class="w-8 h-8 text-slate-400" />
-    </button>
+            <flux:icon name="shopping-bag" class="w-8 h-8 text-slate-400" />
+        </button>
 
-    {{-- Active --}}
-    <button
-        wire:click="$set('statusFilter','active')"
-        class="text-left rounded-2xl p-4
+        {{-- Active --}}
+        <button wire:click="$set('statusFilter','active')"
+            class="text-left rounded-2xl p-4
                bg-emerald-500/10
                flex items-center justify-between transition
-               {{ $statusFilter === 'active'
-                    ? 'ring-2 ring-emerald-500/40'
-                    : 'hover:bg-emerald-500/20' }}">
+               {{ $statusFilter === 'active' ? 'ring-2 ring-emerald-500/40' : 'hover:bg-emerald-500/20' }}">
 
-        <div>
-            <p class="text-xs text-emerald-600">{{ __('Active') }}</p>
-            <p class="text-2xl font-semibold text-emerald-700">
-                {{ $products->where('is_active', true)->count() }}
-            </p>
-        </div>
+            <div>
+                <p class="text-xs text-emerald-600">{{ __('Active') }}</p>
+                <p class="text-2xl font-semibold text-emerald-700">
+                    {{ $products->where('is_active', true)->count() }}
+                </p>
+            </div>
 
-        <flux:icon name="check-circle" class="w-8 h-8 text-emerald-600" />
-    </button>
+            <flux:icon name="check-circle" class="w-8 h-8 text-emerald-600" />
+        </button>
 
-    {{-- Inactive --}}
-    <button
-        wire:click="$set('statusFilter','inactive')"
-        class="text-left rounded-2xl p-4
+        {{-- Inactive --}}
+        <button wire:click="$set('statusFilter','inactive')"
+            class="text-left rounded-2xl p-4
                bg-slate-100 dark:bg-slate-800
                flex items-center justify-between transition
-               {{ $statusFilter === 'inactive'
-                    ? 'ring-2 ring-slate-400/40'
-                    : 'hover:bg-slate-200 dark:hover:bg-slate-700' }}">
+               {{ $statusFilter === 'inactive' ? 'ring-2 ring-slate-400/40' : 'hover:bg-slate-200 dark:hover:bg-slate-700' }}">
 
-        <div>
-            <p class="text-xs text-slate-500">{{ __('Inactive') }}</p>
-            <p class="text-2xl font-semibold text-slate-700 dark:text-slate-200">
-                {{ $products->where('is_active', false)->count() }}
-            </p>
-        </div>
+            <div>
+                <p class="text-xs text-slate-500">{{ __('Inactive') }}</p>
+                <p class="text-2xl font-semibold text-slate-700 dark:text-slate-200">
+                    {{ $products->where('is_active', false)->count() }}
+                </p>
+            </div>
 
-        <flux:icon name="x-circle" class="w-8 h-8 text-slate-400" />
-    </button>
+            <flux:icon name="x-circle" class="w-8 h-8 text-slate-400" />
+        </button>
 
-</div>
+    </div>
 
     {{-- Header + Actions --}}
-<div
-    class="rounded-2xl border border-slate-200 dark:border-slate-800
+    <div
+        class="rounded-2xl border border-slate-200 dark:border-slate-800
            bg-white dark:bg-slate-900/90
            p-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-    {{-- Search --}}
-    <div class="relative w-full sm:w-72">
-        <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
-            <flux:icon name="magnifying-glass" class="w-4 h-4" />
-        </span>
+        {{-- Search --}}
+        <div class="relative w-full sm:w-72">
+            <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+                <flux:icon name="magnifying-glass" class="w-4 h-4" />
+            </span>
 
-        <input
-            wire:model.live="search"
-            type="text"
-            placeholder="{{ __('Search products...') }}"
-            class="w-full pl-9 pr-4 py-2 rounded-xl
+            <input wire:model.live="search" type="text" placeholder="{{ __('Search products...') }}"
+                class="w-full pl-9 pr-4 py-2 rounded-xl
                    border border-slate-200 dark:border-slate-800
                    bg-white dark:bg-slate-900
                    text-sm
                    focus:ring-2 focus:ring-accent/40
                    focus:outline-none">
-    </div>
+        </div>
 
-    {{-- Right --}}
-    <div class="flex items-center gap-3 justify-end">
+        {{-- Right --}}
+        <div class="flex items-center gap-3 justify-end">
 
-        {{-- Counter --}}
-        <span
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
+            {{-- Counter --}}
+            <span
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
                    text-xs font-medium
                    bg-slate-100 dark:bg-slate-800
                    text-slate-600 dark:text-slate-300">
-            <flux:icon name="shopping-bag" class="w-4 h-4" />
-            {{ __('Total') }}: {{ count($products) }}
-        </span>
+                <flux:icon name="shopping-bag" class="w-4 h-4" />
+                {{ __('Total') }}: {{ count($products) }}
+            </span>
 
-        {{-- Add --}}
-        <button
-            wire:click="create"
-            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl
+            {{-- Add --}}
+            <button wire:click="create"
+                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl
                    bg-accent text-white text-sm font-medium
                    hover:opacity-90 transition">
-            <flux:icon name="plus" class="w-4 h-4" />
-            {{ __('Add product') }}
-        </button>
+                <flux:icon name="plus" class="w-4 h-4" />
+                {{ __('Add product') }}
+            </button>
+        </div>
+
     </div>
 
-</div>
+    {{-- Category filter --}}
+    <div class="flex flex-col gap-3">
 
-{{-- Category filter --}}
-<div class="flex flex-col gap-3">
-
-    {{-- Mobile dropdown --}}
-    <div class="sm:hidden">
-        <select
-            wire:model.live="categoryFilter"
-            class="w-full rounded-xl border border-slate-200 dark:border-slate-800
+        {{-- Mobile dropdown --}}
+        <div class="sm:hidden">
+            <select wire:model.live="categoryFilter"
+                class="w-full rounded-xl border border-slate-200 dark:border-slate-800
                    bg-white dark:bg-slate-900 text-sm">
-            <option value="">{{ __('All categories') }}</option>
-            @foreach ($categories as $cat)
-                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-            @endforeach
-        </select>
-    </div>
+                <option value="">{{ __('All categories') }}</option>
+                @foreach ($categories as $cat)
+                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                @endforeach
+            </select>
+        </div>
 
-    {{-- Desktop chips --}}
-    <div class="hidden sm:flex flex-wrap gap-2">
-        <button
-            wire:click="$set('categoryFilter', null)"
-            class="px-4 py-2 rounded-full text-sm transition
-            {{ is_null($categoryFilter)
-                ? 'bg-accent text-white shadow'
-                : 'bg-slate-100 dark:bg-slate-800 hover:opacity-80' }}">
-            {{ __('All') }}
-        </button>
-
-        @foreach ($categories as $cat)
-            <button
-                wire:click="$set('categoryFilter', {{ $cat->id }})"
+        {{-- Desktop chips --}}
+        <div class="hidden sm:flex flex-wrap gap-2">
+            <button wire:click="$set('categoryFilter', null)"
                 class="px-4 py-2 rounded-full text-sm transition
+            {{ is_null($categoryFilter) ? 'bg-accent text-white shadow' : 'bg-slate-100 dark:bg-slate-800 hover:opacity-80' }}">
+                {{ __('All') }}
+            </button>
+
+            @foreach ($categories as $cat)
+                <button wire:click="$set('categoryFilter', {{ $cat->id }})"
+                    class="px-4 py-2 rounded-full text-sm transition
                 {{ $categoryFilter === $cat->id
                     ? 'bg-accent text-white shadow'
                     : 'bg-slate-100 dark:bg-slate-800 hover:opacity-80' }}">
-                {{ $cat->name }}
-            </button>
-        @endforeach
+                    {{ $cat->name }}
+                </button>
+            @endforeach
+        </div>
+
     </div>
 
-</div>
+    {{-- Mobile cards --}}
+    <div class="md:hidden space-y-4">
 
-{{-- Mobile cards --}}
-<div class="md:hidden space-y-4">
-
-    @forelse ($products as $product)
-        <div
-            class="rounded-2xl border border-slate-200 dark:border-slate-800
+        @forelse ($products as $product)
+            <div
+                class="rounded-2xl border border-slate-200 dark:border-slate-800
                    bg-white dark:bg-slate-900 p-4 space-y-4">
 
-            {{-- Header --}}
-            <div class="flex items-start gap-4">
-                <div class="w-16 h-16 rounded-xl overflow-hidden
+                {{-- Header --}}
+                <div class="flex items-start gap-4">
+                    <div
+                        class="w-16 h-16 rounded-xl overflow-hidden
                             bg-slate-100 dark:bg-slate-800
                             ring-1 ring-slate-200 dark:ring-slate-700">
-                    @if ($product->main_image)
-                        <img src="{{ asset('storage/'.$product->main_image) }}"
-                             class="w-full h-full object-cover">
-                    @else
-                        <div class="w-full h-full flex items-center justify-center text-slate-400">
-                            —
-                        </div>
-                    @endif
+                        @if ($product->main_image)
+                            <img src="{{ asset('storage/' . $product->main_image) }}"
+                                class="w-full h-full object-cover">
+                        @else
+                            <div class="w-full h-full flex items-center justify-center text-slate-400">
+                                —
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-semibold text-slate-900 dark:text-white truncate">
+                            {{ $product->title }}
+                        </h3>
+                        <x-ui.tags :tags="$product->tags" />
+                        <p class="text-xs text-slate-500 truncate">
+                            {{ $product->category->name ?? __('No category') }}
+                        </p>
+                    </div>
+
+                    {{-- Status --}}
+                    <button wire:click="toggle({{ $product->id }})"
+                        class="px-3 py-1 rounded-full text-xs font-medium
+                    {{ $product->is_active ? 'bg-emerald-500/15 text-emerald-600' : 'bg-slate-500/10 text-slate-500' }}">
+                        {{ $product->is_active ? __('Active') : __('Inactive') }}
+                    </button>
                 </div>
 
-                <div class="flex-1 min-w-0">
-                    <h3 class="font-semibold text-slate-900 dark:text-white truncate">
-                        {{ $product->title }}
-                    </h3>
-                    <p class="text-xs text-slate-500 truncate">
-                        {{ $product->category->name ?? __('No category') }}
-                    </p>
+                {{-- Meta --}}
+                <div class="flex items-center justify-between text-xs text-slate-500">
+                    <span>{{ __('Order') }}: {{ $product->display_order }}</span>
                 </div>
 
-                {{-- Status --}}
-                <button
-                    wire:click="toggle({{ $product->id }})"
-                    class="px-3 py-1 rounded-full text-xs font-medium
-                    {{ $product->is_active
-                        ? 'bg-emerald-500/15 text-emerald-600'
-                        : 'bg-slate-500/10 text-slate-500' }}">
-                    {{ $product->is_active ? __('Active') : __('Inactive') }}
-                </button>
+                {{-- Actions --}}
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <button wire:click="view({{ $product->id }})"
+                        class="p-2 rounded-lg text-accent hover:bg-accent/10">
+                        <flux:icon name="eye" class="w-4 h-4" />
+                    </button>
+
+                    <button wire:click="edit({{ $product->id }})"
+                        class="p-2 rounded-lg text-sky-600 hover:bg-sky-500/10">
+                        <flux:icon name="pencil-square" class="w-4 h-4" />
+                    </button>
+
+                    <button wire:click="askDelete({{ $product->id }})"
+                        class="p-2 rounded-lg text-red-500 hover:bg-red-500/10">
+                        <flux:icon name="trash" class="w-4 h-4" />
+                    </button>
+                </div>
             </div>
-
-            {{-- Meta --}}
-            <div class="flex items-center justify-between text-xs text-slate-500">
-                <span>{{ __('Order') }}: {{ $product->display_order }}</span>
+        @empty
+            <div class="p-6 text-center text-slate-500">
+                {{ __('No products found') }}
             </div>
+        @endforelse
 
-            {{-- Actions --}}
-            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-                <button wire:click="view({{ $product->id }})"
-                    class="p-2 rounded-lg text-accent hover:bg-accent/10">
-                    <flux:icon name="eye" class="w-4 h-4" />
-                </button>
-
-                <button wire:click="edit({{ $product->id }})"
-                    class="p-2 rounded-lg text-sky-600 hover:bg-sky-500/10">
-                    <flux:icon name="pencil-square" class="w-4 h-4" />
-                </button>
-
-                <button wire:click="askDelete({{ $product->id }})"
-                    class="p-2 rounded-lg text-red-500 hover:bg-red-500/10">
-                    <flux:icon name="trash" class="w-4 h-4" />
-                </button>
-            </div>
-        </div>
-    @empty
-        <div class="p-6 text-center text-slate-500">
-            {{ __('No products found') }}
-        </div>
-    @endforelse
-
-</div>
+    </div>
 
     {{-- Products table --}}
-<div
-    wire:loading.remove
-    wire:target="search,statusFilter,categoryFilter"
-    class="hidden md:block">
-    
-<div
-    class="rounded-2xl overflow-hidden
+    <div wire:loading.remove wire:target="search,statusFilter,categoryFilter" class="hidden md:block">
+
+        <div
+            class="rounded-2xl overflow-hidden
            border border-slate-200 dark:border-slate-800
            bg-white dark:bg-slate-900/90">
 
-    <table class="w-full text-sm">
-        <thead
-            class="bg-slate-100 dark:bg-slate-800
+            <table class="w-full text-sm">
+                <thead class="bg-slate-100 dark:bg-slate-800
                    text-slate-700 dark:text-slate-200">
-            <tr>
-                <th class="px-3 py-3"></th>
-                <th class="px-4 py-3">{{ __('Image') }}</th>
-                <th class="px-4 py-3">{{ __('Title') }}</th>
-                <th class="px-4 py-3">{{ __('Category') }}</th>
-                <th class="px-4 py-3">{{ __('Status') }}</th>
-                <th class="px-4 py-3">{{ __('Order') }}</th>
-                <th class="px-4 py-3 text-right">{{ __('Actions') }}</th>
-            </tr>
-        </thead>
+                    <tr>
+                        <th class="px-3 py-3"></th>
+                        <th class="px-4 py-3">{{ __('Image') }}</th>
+                        <th class="px-4 py-3">{{ __('Title') }}</th>
+                        <th class="px-4 py-3">{{ __('Category') }}</th>
+                        <th class="px-4 py-3">{{ __('Status') }}</th>
+                        <th class="px-4 py-3">{{ __('Order') }}</th>
+                        <th class="px-4 py-3">{{ __('Tags') }}</th>
+                        <th class="px-4 py-3 text-right">{{ __('Actions') }}</th>
+                    </tr>
+                </thead>
 
-        <tbody
-            x-data
-            x-init="new Sortable($el,{
-                handle:'[data-drag-handle]',
-                animation:150,
-                onEnd(){
-                    const ids=[...$el.children].map(el=>el.dataset.id)
-                    $wire.reorder(ids)
-                }
-            })"
-            class="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody x-data x-init="new Sortable($el, {
+                    handle: '[data-drag-handle]',
+                    animation: 150,
+                    onEnd() {
+                        const ids = [...$el.children].map(el => el.dataset.id)
+                        $wire.reorder(ids)
+                    }
+                })" class="divide-y divide-slate-100 dark:divide-slate-800">
 
-            @forelse ($products as $product)
-                <tr
-                    data-id="{{ $product->id }}"
-                    wire:key="product-{{ $product->id }}"
-                    class="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                    @forelse ($products as $product)
+                        <tr data-id="{{ $product->id }}" wire:key="product-{{ $product->id }}"
+                            class="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
 
-                    {{-- Drag --}}
-                    <td class="px-3 text-slate-400 cursor-move" data-drag-handle>
-                        <flux:icon name="bars-3" class="w-5 h-5" />
-                    </td>
+                            {{-- Drag --}}
+                            <td class="px-3 text-slate-400 cursor-move" data-drag-handle>
+                                <flux:icon name="bars-3" class="w-5 h-5" />
+                            </td>
 
-                    {{-- Image --}}
-                    <td class="px-4 py-3">
-                        <div
-                            class="w-14 h-14 rounded-lg overflow-hidden
+                            {{-- Image --}}
+                            <td class="px-4 py-3">
+                                <div
+                                    class="w-14 h-14 rounded-lg overflow-hidden
                                    bg-slate-100 dark:bg-slate-800
                                    ring-1 ring-slate-200 dark:ring-slate-700">
-                            @if ($product->main_image)
-                                <img
-                                    src="{{ asset('storage/'.$product->main_image) }}"
-                                    class="w-full h-full object-cover
+                                    @if ($product->main_image)
+                                        <img src="{{ asset('storage/' . $product->main_image) }}"
+                                            class="w-full h-full object-cover
                                            hover:scale-110 transition-transform">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center text-slate-400">
-                                    —
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-slate-400">
+                                            —
+                                        </div>
+                                    @endif
                                 </div>
-                            @endif
-                        </div>
-                    </td>
+                            </td>
 
-                    {{-- Title --}}
-                    <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">
-                        {{ $product->title }}
-                    </td>
+                            {{-- Title --}}
+                            <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">
+                                {{ $product->title }}
+                            </td>
 
-                    {{-- Category --}}
-                    <td class="px-4 py-3 text-slate-500">
-                        {{ $product->category->name ?? '—' }}
-                    </td>
+                            {{-- Category --}}
+                            <td class="px-4 py-3 text-slate-500">
+                                {{ $product->category->name ?? '—' }}
+                            </td>
 
-                    {{-- Status --}}
-                    <td class="px-4 py-3">
-                        <button
-                            wire:click="toggle({{ $product->id }})"
-                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
+                            {{-- Status --}}
+                            <td class="px-4 py-3">
+                                <button wire:click="toggle({{ $product->id }})"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
                                    text-xs font-medium transition
                                    {{ $product->is_active
                                        ? 'bg-emerald-500/15 text-emerald-600 ring-1 ring-emerald-500/30'
                                        : 'bg-slate-500/10 text-slate-500 ring-1 ring-slate-500/30' }}">
-                            @if ($product->is_active)
-                                <flux:icon name="check" class="w-3.5 h-3.5" />
-                                {{ __('Active') }}
-                            @else
-                                <flux:icon name="x-mark" class="w-3.5 h-3.5" />
-                                {{ __('Inactive') }}
-                            @endif
-                        </button>
-                    </td>
+                                    @if ($product->is_active)
+                                        <flux:icon name="check" class="w-3.5 h-3.5" />
+                                        {{ __('Active') }}
+                                    @else
+                                        <flux:icon name="x-mark" class="w-3.5 h-3.5" />
+                                        {{ __('Inactive') }}
+                                    @endif
+                                </button>
+                            </td>
 
-                    {{-- Order --}}
-                    <td class="px-4 py-3 text-slate-500">
-                        {{ $product->display_order }}
-                    </td>
+                            {{-- Order --}}
+                            <td class="px-4 py-3 text-slate-500">
+                                {{ $product->display_order }}
+                            </td>
 
-                    {{-- Actions --}}
-                    <td class="px-4 py-3 text-right">
-                        <div class="inline-flex items-center gap-2">
+                            <td class="px-4 py-3">
+                                <x-ui.tags :tags="$product->tags" />
+                            </td>
 
-                            <button wire:click="view({{ $product->id }})"
-                                class="p-1.5 rounded-lg text-accent hover:bg-accent/10 transition">
-                                <flux:icon name="eye" class="w-4 h-4" />
-                            </button>
 
-                            <button wire:click="edit({{ $product->id }})"
-                                class="p-1.5 rounded-lg text-sky-600 hover:bg-sky-500/10 transition">
-                                <flux:icon name="pencil-square" class="w-4 h-4" />
-                            </button>
+                            {{-- Actions --}}
+                            <td class="px-4 py-3 text-right">
+                                <div class="inline-flex items-center gap-2">
 
-                            <button wire:click="askDelete({{ $product->id }})"
-                                class="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition">
-                                <flux:icon name="trash" class="w-4 h-4" />
-                            </button>
+                                    <button wire:click="view({{ $product->id }})"
+                                        class="p-1.5 rounded-lg text-accent hover:bg-accent/10 transition">
+                                        <flux:icon name="eye" class="w-4 h-4" />
+                                    </button>
 
-                        </div>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="7" class="px-6 py-10 text-center text-slate-500">
-                        {{ __('No products found') }}
-                    </td>
-                </tr>
-            @endforelse
+                                    <button wire:click="edit({{ $product->id }})"
+                                        class="p-1.5 rounded-lg text-sky-600 hover:bg-sky-500/10 transition">
+                                        <flux:icon name="pencil-square" class="w-4 h-4" />
+                                    </button>
 
-        </tbody>
-    </table>
-</div>
-</div>
+                                    <button wire:click="askDelete({{ $product->id }})"
+                                        class="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition">
+                                        <flux:icon name="trash" class="w-4 h-4" />
+                                    </button>
+
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="px-6 py-10 text-center text-slate-500">
+                                {{ __('No products found') }}
+                            </td>
+                        </tr>
+                    @endforelse
+
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     {{-- Modal --}}
     @if ($showModal)
         <div class="fixed inset-0 z-50">
 
             {{-- Overlay --}}
-        <div
-            class="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            wire:click="closeModal"
-            wire:loading.remove
-            wire:target="save">
-        </div>
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" wire:click="closeModal" wire:loading.remove
+                wire:target="save">
+            </div>
 
             {{-- Center Wrapper --}}
             <div class="relative h-full w-full flex items-start justify-center
@@ -628,7 +627,7 @@ public function loadProducts(): void
 
                 {{-- Modal Container --}}
                 <div
-    class="w-full max-w-2xl
+                    class="w-full max-w-2xl
            rounded-2xl
            bg-white dark:bg-slate-900
            border border-slate-200 dark:border-slate-800
@@ -725,6 +724,32 @@ public function loadProducts(): void
                                 @enderror
                             </div>
 
+                            {{-- Tags --}}
+                            <div>
+                                <label class="block mb-1 text-xs font-medium text-slate-500">
+                                    {{ __('Tags') }}
+                                </label>
+
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach ($allTags as $tag)
+                                        <label
+                                            class="flex items-center gap-2 px-3 py-1.5 rounded-full
+                                                text-xs cursor-pointer transition
+                                                {{ in_array($tag->id, $selectedTags ?? [])
+                                                    ? 'bg-accent text-white'
+                                                    : 'bg-slate-100 dark:bg-slate-800 hover:opacity-80' }}">
+                                            <input type="checkbox" wire:model.defer="selectedTags"
+                                                value="{{ $tag->id }}" class="hidden" />
+                                            {{ $tag->name }}
+                                        </label>
+                                    @endforeach
+                                </div>
+
+                                @error('selectedTags')
+                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             {{-- Images --}}
                             <div class="space-y-6">
 
@@ -760,51 +785,52 @@ public function loadProducts(): void
                                     <input type="file" wire:model="images" multiple
                                         class="text-sm text-slate-500" />
 
-                                        @if ($editing && $editing->images)
-    <div class="space-y-2">
-        <p class="text-xs text-slate-500">
-            {{ __('Current images') }}
-        </p>
+                                    @if ($editing && $editing->images)
+                                        <div class="space-y-2">
+                                            <p class="text-xs text-slate-500">
+                                                {{ __('Current images') }}
+                                            </p>
 
-        <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
-            @foreach ($editing->images as $img)
-                <div
-                    class="relative w-full h-24 rounded-xl overflow-hidden
+                                            <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                                                @foreach ($editing->images as $img)
+                                                    <div
+                                                        class="relative w-full h-24 rounded-xl overflow-hidden
                            ring-1 ring-slate-200 dark:ring-slate-700">
 
-                    <img
-                        src="{{ asset('storage/' . $img) }}"
-                        class="w-full h-full object-cover
+                                                        <img src="{{ asset('storage/' . $img) }}"
+                                                            class="w-full h-full object-cover
                                hover:scale-110 transition-transform" />
 
-                    {{-- Overlay --}}
-                    <div class="absolute inset-0 bg-black/0 hover:bg-black/20 transition"></div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-@endif
+                                                        {{-- Overlay --}}
+                                                        <div
+                                                            class="absolute inset-0 bg-black/0 hover:bg-black/20 transition">
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
 
                                     <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-3">
                                         @if ($images)
-    <div class="space-y-2">
-        <p class="text-xs text-slate-500">
-            {{ __('New images') }}
-        </p>
+                                            <div class="space-y-2">
+                                                <p class="text-xs text-slate-500">
+                                                    {{ __('New images') }}
+                                                </p>
 
-        <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
-            @foreach ($images as $img)
-                <div
-                    class="w-full h-24 rounded-xl overflow-hidden
+                                                <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                                                    @foreach ($images as $img)
+                                                        <div
+                                                            class="w-full h-24 rounded-xl overflow-hidden
                            ring-1 ring-accent/40">
-                    <img src="{{ $img->temporaryUrl() }}"
-                        class="w-full h-full object-cover
+                                                            <img src="{{ $img->temporaryUrl() }}"
+                                                                class="w-full h-full object-cover
                                hover:scale-110 transition-transform" />
-                </div>
-            @endforeach
-        </div>
-    </div>
-@endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endif
 
                                     </div>
 
@@ -813,19 +839,6 @@ public function loadProducts(): void
                                     @enderror
                                 </div>
 
-                            </div>
-
-                            {{-- SEO --}}
-                            <div class="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
-                                <h4 class="text-sm font-semibold text-slate-500">
-                                    {{ __('SEO settings') }}
-                                </h4>
-
-                                <input type="text" wire:model.defer="meta_title"
-                                    placeholder="{{ __('Meta title') }}" class="w-full rounded-lg input" />
-
-                                <textarea wire:model.defer="meta_description" rows="2" placeholder="{{ __('Meta description') }}"
-                                    class="w-full rounded-lg textarea"></textarea>
                             </div>
 
                         </div>
@@ -845,50 +858,41 @@ public function loadProducts(): void
                         </label>
 
                         <div class="flex gap-2">
-<button
-    wire:click="closeModal"
-    wire:loading.attr="disabled"
-    wire:target="save"
-    class="px-4 py-2 rounded-lg text-sm
+                            <button wire:click="closeModal" wire:loading.attr="disabled" wire:target="save"
+                                class="px-4 py-2 rounded-lg text-sm
            bg-slate-200 dark:bg-slate-800
            hover:opacity-80 transition
            disabled:opacity-50 disabled:cursor-not-allowed">
-    {{ __('Cancel') }}
-</button>
+                                {{ __('Cancel') }}
+                            </button>
 
 
-<button
-    wire:click="save"
-    wire:loading.attr="disabled"
-    wire:target="save"
-    class="relative inline-flex items-center justify-center gap-2
+                            <button wire:click="save" wire:loading.attr="disabled" wire:target="save"
+                                class="relative inline-flex items-center justify-center gap-2
            px-5 py-2.5 rounded-lg text-sm font-medium
            bg-accent text-white
            transition
            hover:opacity-90
            disabled:opacity-60 disabled:cursor-not-allowed">
 
-    {{-- الحالة العادية --}}
-    <span wire:loading.remove wire:target="save">
-        {{ __('Save') }}
-    </span>
+                                {{-- الحالة العادية --}}
+                                <span wire:loading.remove wire:target="save">
+                                    {{ __('Save') }}
+                                </span>
 
-    {{-- حالة التحميل --}}
-    <span wire:loading wire:target="save" class="flex items-center gap-2">
-        <svg class="w-4 h-4 animate-spin text-white"
-             xmlns="http://www.w3.org/2000/svg"
-             fill="none"
-             viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10"
-                    stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
-            </path>
-        </svg>
-        {{ __('Saving...') }}
-    </span>
-</button>
+                                {{-- حالة التحميل --}}
+                                <span wire:loading wire:target="save" class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg"
+                                        fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+                                        </path>
+                                    </svg>
+                                    {{ __('Saving...') }}
+                                </span>
+                            </button>
 
                         </div>
                     </div>
@@ -992,6 +996,16 @@ public function loadProducts(): void
                                 <p>{{ $viewing->category->name ?? '—' }}</p>
                             </div>
 
+                            @if ($viewing->tags->count())
+                                <div>
+                                    <span class="text-slate-400 text-sm">{{ __('Tags') }}</span>
+                                    <div class="mt-1">
+                                        <x-ui.tags :tags="$viewing->tags" size="md" />
+                                    </div>
+                                </div>
+                            @endif
+
+
                             <div>
                                 <span class="text-slate-400">{{ __('Status') }}</span>
                                 <p>{{ $viewing->is_active ? __('Active') : __('Inactive') }}</p>
@@ -1012,20 +1026,6 @@ public function loadProducts(): void
                                 </p>
                             </div>
                         @endif
-
-                        {{-- SEO --}}
-                        <div class="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-2 text-sm">
-                            <div>
-                                <span class="text-slate-400">{{ __('Meta title') }}</span>
-                                <p>{{ $viewing->meta_title ?: '—' }}</p>
-                            </div>
-
-                            <div>
-                                <span class="text-slate-400">{{ __('Meta description') }}</span>
-                                <p>{{ $viewing->meta_description ?: '—' }}</p>
-                            </div>
-                        </div>
-
                     </div>
                 </div>
             </div>

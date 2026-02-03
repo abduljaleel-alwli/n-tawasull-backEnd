@@ -13,7 +13,7 @@
         {{-- Logo --}}
         <a href="{{ route('admin.dashboard') }}"
             class="me-5 flex items-center space-x-2 rtl:space-x-reverse admin-logo-box" wire:navigate>
-            <x-app-logo />
+            <x-app-logo-icon style="width: 100%; height: auto;" />
         </a>
 
         {{-- Platform --}}
