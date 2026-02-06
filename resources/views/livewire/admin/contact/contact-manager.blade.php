@@ -224,7 +224,7 @@ new class extends Component {
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
-]
+
                 <div>
                     <label class="block text-xs text-slate-500 mb-1">{{ __('Working time') }}</label>
                     <input wire:model.defer="working_time"
