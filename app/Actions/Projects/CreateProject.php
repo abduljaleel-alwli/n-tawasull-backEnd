@@ -38,6 +38,72 @@ class CreateProject
             }
 
             /* =====================
+               Videos Handling (JSON)
+               Expected: array of items
+               [{type:"url|iframe", provider:"youtube|vimeo|other", title:null, url:null, iframe:null}]
+            ===================== */
+
+            $videos = null;
+
+            if (!empty($data['videos']) && is_array($data['videos'])) {
+                $normalized = [];
+
+                foreach ($data['videos'] as $item) {
+                    if (!is_array($item)) {
+                        continue;
+                    }
+
+                    $type = ($item['type'] ?? 'url');
+                    $type = in_array($type, ['url', 'iframe'], true) ? $type : 'url';
+
+                    $title = isset($item['title']) && is_string($item['title'])
+                        ? trim($item['title'])
+                        : null;
+
+                    $provider = isset($item['provider']) && is_string($item['provider'])
+                        ? strtolower(trim($item['provider']))
+                        : 'other';
+
+                    $provider = in_array($provider, ['youtube', 'vimeo', 'other'], true) ? $provider : 'other';
+
+                    $url = isset($item['url']) && is_string($item['url']) ? trim($item['url']) : null;
+                    $iframe = isset($item['iframe']) && is_string($item['iframe']) ? trim($item['iframe']) : null;
+
+                    // ✅ فلترة بسيطة: لا نخزن عنصر فاضي
+                    if ($type === 'url') {
+                        if (!$url) continue;
+
+                        // (اختياري) تأكد أنه URL صالح
+                        if (!filter_var($url, FILTER_VALIDATE_URL)) continue;
+
+                        $normalized[] = [
+                            'type'     => 'url',
+                            'provider' => $provider,
+                            'title'    => $title,
+                            'url'      => $url,
+                            'iframe'   => null,
+                        ];
+                    } else {
+                        // ⚠️ iframe خام قد يكون خطر، نسمح به لكن ننظفه بشكل بسيط
+                        if (!$iframe) continue;
+
+                        // إزالة <script> إن وجدت (حماية أولية)
+                        $iframe = preg_replace('/<\s*script[^>]*>.*?<\s*\/\s*script\s*>/is', '', $iframe);
+
+                        $normalized[] = [
+                            'type'     => 'iframe',
+                            'provider' => $provider,
+                            'title'    => $title,
+                            'url'      => null,
+                            'iframe'   => $iframe,
+                        ];
+                    }
+                }
+
+                $videos = !empty($normalized) ? array_values($normalized) : null;
+            }
+
+            /* =====================
                Create Project
             ===================== */
 
@@ -55,6 +121,9 @@ class CreateProject
 
                 // ✅ HTML نص عادي
                 'content'       => $data['content'] ?? null,
+
+                // ✅ Videos JSON
+                'videos'        => $videos,
 
                 'is_active'     => $data['is_active'] ?? true,
                 'display_order' => $nextOrder,

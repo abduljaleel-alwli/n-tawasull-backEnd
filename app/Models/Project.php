@@ -24,6 +24,7 @@ class Project extends Model
         'images',
         'features',
         'content',
+        'videos',
         'is_active',
         'display_order',
         'created_by',
@@ -35,6 +36,7 @@ class Project extends Model
     protected $casts = [
         'images' => 'array',
         'features' => 'array',
+        'videos' => 'array',
         'content' => 'string',
         'is_active' => 'boolean',
         'display_order' => 'integer',

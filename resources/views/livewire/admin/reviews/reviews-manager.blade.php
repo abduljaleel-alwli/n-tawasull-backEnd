@@ -274,7 +274,7 @@ new class extends Component {
         <div class="space-y-3">
             <div class="flex items-center justify-between">
                 <label class="block text-xs font-medium text-slate-500">{{ __('Summary avatars (URLs or storage paths)') }}</label>
-                <button wire:click="addSummaryAvatar" class="text-xs text-accent hover:underline">
+                <button wire:click="addSummaryAvatar" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-accent text-white hover:opacity-90 transition">
                     + {{ __('Add avatar') }}
                 </button>
             </div>
@@ -284,7 +284,7 @@ new class extends Component {
                     <div class="flex gap-2">
                         <input wire:model.defer="summaryAvatars.{{ $i }}" class="input w-full"
                                placeholder="https://... OR reviews/avatars/xxx.webp" />
-                        <button wire:click="removeSummaryAvatar({{ $i }})" class="text-xs text-red-500 hover:underline">
+                        <button wire:click="removeSummaryAvatar({{ $i }})" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-red-500 text-white hover:opacity-90 transition">
                             {{ __('Remove') }}
                         </button>
                     </div>

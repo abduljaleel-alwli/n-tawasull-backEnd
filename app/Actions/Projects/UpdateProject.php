@@ -50,9 +50,73 @@ class UpdateProject
             }
 
             /* =====================
+               Videos Handling (JSON)
+               Update only if provided in $data
+            ===================== */
+            $videos = $project->videos;
+
+            if (array_key_exists('videos', $data)) {
+                $videos = null;
+
+                if (!empty($data['videos']) && is_array($data['videos'])) {
+                    $normalized = [];
+
+                    foreach ($data['videos'] as $item) {
+                        if (!is_array($item)) continue;
+
+                        $type = ($item['type'] ?? 'url');
+                        $type = in_array($type, ['url', 'iframe'], true) ? $type : 'url';
+
+                        $title = isset($item['title']) && is_string($item['title'])
+                            ? trim($item['title'])
+                            : null;
+
+                        $provider = isset($item['provider']) && is_string($item['provider'])
+                            ? strtolower(trim($item['provider']))
+                            : 'other';
+
+                        $provider = in_array($provider, ['youtube', 'vimeo', 'other'], true)
+                            ? $provider
+                            : 'other';
+
+                        $url = isset($item['url']) && is_string($item['url']) ? trim($item['url']) : null;
+                        $iframe = isset($item['iframe']) && is_string($item['iframe']) ? trim($item['iframe']) : null;
+
+                        if ($type === 'url') {
+                            if (!$url) continue;
+                            if (!filter_var($url, FILTER_VALIDATE_URL)) continue;
+
+                            $normalized[] = [
+                                'type'     => 'url',
+                                'provider' => $provider,
+                                'title'    => $title,
+                                'url'      => $url,
+                                'iframe'   => null,
+                            ];
+                        } else {
+                            if (!$iframe) continue;
+
+                            // إزالة <script> إن وجدت (حماية أولية)
+                            $iframe = preg_replace('/<\s*script[^>]*>.*?<\s*\/\s*script\s*>/is', '', $iframe);
+
+                            $normalized[] = [
+                                'type'     => 'iframe',
+                                'provider' => $provider,
+                                'title'    => $title,
+                                'url'      => null,
+                                'iframe'   => $iframe,
+                            ];
+                        }
+                    }
+
+                    $videos = !empty($normalized) ? array_values($normalized) : null;
+                }
+            }
+
+            /* =====================
                Fill other fields
             ===================== */
-            // ✅ اعتمد على casts: features/ images arrays تلقائيًا
+            // ✅ اعتمد على casts: features/ images/videos arrays تلقائيًا
             $project->fill([
                 'title'         => $data['title'] ?? $project->title,
                 'description'   => $data['description'] ?? null,
@@ -61,10 +125,17 @@ class UpdateProject
                 'display_order' => $data['display_order'] ?? $project->display_order,
 
                 // ✅ features array (أو null)
-                'features'      => array_key_exists('features', $data) ? ($data['features'] ?? null) : $project->features,
+                'features'      => array_key_exists('features', $data)
+                    ? ($data['features'] ?? null)
+                    : $project->features,
 
                 // ✅ content html string (أو null)
-                'content'       => array_key_exists('content', $data) ? ($data['content'] ?? null) : $project->content,
+                'content'       => array_key_exists('content', $data)
+                    ? ($data['content'] ?? null)
+                    : $project->content,
+
+                // ✅ videos json (أو null) — فقط لو تم تمريره
+                'videos'        => $videos,
             ]);
 
             $project->save();

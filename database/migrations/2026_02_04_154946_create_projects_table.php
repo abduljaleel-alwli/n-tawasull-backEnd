@@ -30,6 +30,9 @@ return new class extends Migration {
             // إضافة العمود "content" لتخزين محتوى HTML
             $table->text('content')->nullable();
 
+            // Videos: array of items [{type:"url|iframe", provider:"youtube|vimeo|other", title:null, url:null, iframe:null}]
+            $table->json('videos')->nullable();
+
             $table->boolean('is_active')->default(true);
             $table->integer('display_order')->default(0);
 

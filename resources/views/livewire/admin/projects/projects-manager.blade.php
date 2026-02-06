@@ -42,6 +42,8 @@ new class extends Component {
     public array $features = []; // New array for features
     public string $content = ''; // New string for content
 
+    public array $videos = []; // New array for videos
+
     /** Data */
     public $categories = [];
 
@@ -105,8 +107,23 @@ new class extends Component {
         $this->description = (string) $project->description;
         $this->category_id = $project->category_id;
         $this->is_active = (bool) $project->is_active;
+
         $this->features = $project->features ?? []; // Load features if exists
         $this->content = (string) ($project->content ?? ''); // Load content if exists
+
+        // Load videos if exists
+        $this->videos = $project->videos ?? [];
+
+        foreach ($this->videos as $i => $v) {
+            if (!is_array($v)) {
+                $v = [];
+            }
+            if (empty($v['_key'])) {
+                $v['_key'] = (string) \Illuminate\Support\Str::uuid();
+            }
+            $this->videos[$i] = $v;
+        }
+
         $this->display_order = (int) $project->display_order;
 
         $this->showModal = true;
@@ -124,7 +141,21 @@ new class extends Component {
             'is_active' => ['boolean'],
             'features' => ['nullable', 'array'], // Validation for features
             'content' => ['nullable', 'string'], // Validation for content
+
+            // videos
+            'videos' => ['nullable', 'array'],
+            'videos.*.type' => ['nullable', 'in:url,iframe'],
+            'videos.*.provider' => ['nullable', 'in:youtube,vimeo,other'],
+            'videos.*.title' => ['nullable', 'string', 'max:255'],
+            'videos.*.url' => ['nullable', 'string'],
+            'videos.*.iframe' => ['nullable', 'string'],
         ]);
+
+        // تنظيف المفاتيح المؤقتة
+        if (isset($data['videos'])) {
+            $data['videos'] = $this->cleanVideosForStorage($data['videos']);
+            $data['videos'] = count($data['videos']) ? $data['videos'] : null;
+        }
 
         if ($this->editing) {
             $update->execute($this->editing, $data);
@@ -149,6 +180,80 @@ new class extends Component {
     {
         unset($this->features[$index]);
         $this->features = array_values($this->features); // Reindex the array
+    }
+
+    public function addVideo(): void
+    {
+        $this->videos[] = [
+            '_key' => (string) \Illuminate\Support\Str::uuid(),
+            'type' => 'url',
+            'provider' => 'youtube',
+            'title' => '',
+            'url' => '',
+            'iframe' => '',
+        ];
+    }
+
+    public function removeVideo(int $index): void
+    {
+        unset($this->videos[$index]);
+        $this->videos = array_values($this->videos);
+    }
+
+    // Clean videos data before saving to database (remove _key and ensure structure)
+    private function cleanVideosForStorage(array $videos): array
+    {
+        $clean = [];
+
+        foreach ($videos as $video) {
+            if (!is_array($video)) {
+                continue;
+            }
+
+            // إزالة _key
+            unset($video['_key']);
+
+            // Trim + تحويل '' إلى null
+            foreach (['type', 'provider', 'title', 'url', 'iframe'] as $k) {
+                if (array_key_exists($k, $video) && is_string($video[$k])) {
+                    $video[$k] = trim($video[$k]);
+                    if ($video[$k] === '') {
+                        $video[$k] = null;
+                    }
+                }
+            }
+
+            // Defaults
+            $type = $video['type'] ?? 'url';
+            $type = in_array($type, ['url', 'iframe'], true) ? $type : 'url';
+            $video['type'] = $type;
+
+            if ($type === 'url') {
+                // إذا URL: لازم يوجد رابط، غير ذلك تجاهله
+                if (empty($video['url'])) {
+                    continue;
+                }
+
+                // provider افتراضي
+                $video['provider'] = in_array($video['provider'] ?? 'other', ['youtube', 'vimeo', 'other'], true) ? $video['provider'] ?? 'other' : 'other';
+
+                // iframe غير مطلوب
+                $video['iframe'] = null;
+            } else {
+                // إذا IFRAME: لازم يوجد iframe، غير ذلك تجاهله
+                if (empty($video['iframe'])) {
+                    continue;
+                }
+
+                // provider غير مهم هنا
+                $video['provider'] = $video['provider'] ?? 'other';
+                $video['url'] = null;
+            }
+
+            $clean[] = $video;
+        }
+
+        return array_values($clean);
     }
 
     // Content Editor Methods
@@ -254,7 +359,7 @@ new class extends Component {
 
     private function resetForm(): void
     {
-        $this->reset(['editing', 'title', 'description', 'category_id', 'main_image', 'images', 'is_active', 'features', 'content']);
+        $this->reset(['editing', 'title', 'description', 'category_id', 'main_image', 'images', 'is_active', 'features', 'content', 'videos']);
 
         $this->is_active = true;
         $this->display_order = 0;
@@ -844,34 +949,6 @@ new class extends Component {
                                 @enderror
                             </div>
 
-                            {{-- Features --}}
-                            <div>
-                                <label class="block mb-1 text-xs font-medium text-slate-500">
-                                    {{ __('Features (Title and Description)') }}
-                                </label>
-                                <div class="space-y-2 mb-2">
-                                    @foreach ($features as $index => $feature)
-                                        <div class="flex gap-2">
-                                            <input type="text"
-                                                wire:model.defer="features.{{ $index }}.title"
-                                                placeholder="Title" class="w-full rounded-lg input" />
-                                            <textarea wire:model.defer="features.{{ $index }}.description" placeholder="Description"
-                                                class="w-full rounded-lg textarea"></textarea>
-
-                                            <!-- زر حذف -->
-                                            <button type="button" wire:click="removeFeature({{ $index }})"
-                                                class="bg-red-500 text-white hover:bg-red-700 rounded-lg px-4 py-2 transition-all">
-                                                <flux:icon name="trash" class="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <button wire:click="addFeature"
-                                    class="bg-accent text-white hover:bg-accent-dark rounded-lg px-4 py-2 text-sm transition-all">
-                                    {{ __('Add more features') }}
-                                </button>
-                            </div>
-
                             {{-- Images --}}
                             <div class="space-y-6">
 
@@ -956,6 +1033,148 @@ new class extends Component {
                                     @enderror
                                 </div>
                             </div>
+
+                            {{-- Features --}}
+                            <div>
+                                <label class="block mb-1 text-xs font-medium text-slate-500">
+                                    {{ __('Features (Title and Description)') }}
+                                </label>
+                                <div class="space-y-2 mb-2">
+                                    @foreach ($features as $index => $feature)
+                                        <div class="flex gap-2">
+                                            <input type="text"
+                                                wire:model.defer="features.{{ $index }}.title"
+                                                placeholder="Title" class="w-full rounded-lg input" />
+                                            <textarea wire:model.defer="features.{{ $index }}.description" placeholder="Description"
+                                                class="w-full rounded-lg textarea"></textarea>
+
+                                            <!-- زر حذف -->
+                                            <button type="button" wire:click="removeFeature({{ $index }})"
+                                                class="bg-red-500 text-white hover:bg-red-700 rounded-lg px-4 py-2 transition-all">
+                                                <flux:icon name="trash" class="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <button wire:click="addFeature"
+                                    class="bg-accent text-white hover:bg-accent-dark rounded-lg px-4 py-2 text-sm transition-all">
+                                    {{ __('Add more features') }}
+                                </button>
+                            </div>
+
+                            {{-- Videos --}}
+                            <div>
+                                <label class="block mb-1 text-xs font-medium text-slate-500">
+                                    {{ __('Videos') }}
+                                </label>
+
+                                <div class="space-y-3 mb-2">
+                                    @foreach ($videos as $index => $video)
+                                        <div wire:key="video-row-{{ $video['_key'] ?? $index }}"
+                                            class="rounded-xl border border-slate-200 dark:border-slate-800 p-3 space-y-3"
+                                            x-data="{
+                                                type: @entangle('videos.' . $index . '.type').live,
+                                                provider: @entangle('videos.' . $index . '.provider').live,
+                                            
+                                                get urlPlaceholder() {
+                                                    if (this.provider === 'youtube') return 'https://www.youtube.com/watch?v=...';
+                                                    if (this.provider === 'vimeo') return 'https://vimeo.com/123456';
+                                                    return 'https://...';
+                                                },
+                                            
+                                                init() {
+                                                    this.$watch('type', (v) => {
+                                                        if (v === 'url') {
+                                                            $wire.set('videos.{{ $index }}.iframe', null); // ✅ امسح iframe
+                                                            if (!this.provider) this.provider = 'youtube';
+                                                        } else {
+                                                            $wire.set('videos.{{ $index }}.url', null); // ✅ امسح url
+                                                            this.provider = 'other';
+                                                        }
+                                                    });
+                                                },
+                                            }">
+                                            <div class="grid sm:grid-cols-3 gap-2">
+                                                {{-- Type --}}
+                                                <div>
+                                                    <label
+                                                        class="block mb-1 text-xs text-slate-500">{{ __('Type') }}</label>
+                                                    <select class="w-full rounded-lg select" x-model="type">
+                                                        <option value="url">{{ __('URL') }}</option>
+                                                        <option value="iframe">{{ __('Iframe') }}</option>
+                                                    </select>
+                                                </div>
+
+                                                {{-- Provider (only for URL) --}}
+                                                <div x-show="type === 'url'" x-cloak>
+                                                    <label
+                                                        class="block mb-1 text-xs text-slate-500">{{ __('Provider') }}</label>
+                                                    <select class="w-full rounded-lg select" x-model="provider">
+                                                        <option value="youtube">YouTube</option>
+                                                        <option value="vimeo">Vimeo</option>
+                                                        <option value="other">{{ __('Other') }}</option>
+                                                    </select>
+                                                </div>
+
+                                                {{-- Title --}}
+                                                <div :class="type === 'url' ? '' : 'sm:col-span-2'">
+                                                    <label
+                                                        class="block mb-1 text-xs text-slate-500">{{ __('Title (optional)') }}</label>
+                                                    <input type="text"
+                                                        wire:model.defer="videos.{{ $index }}.title"
+                                                        class="w-full rounded-lg input" />
+                                                </div>
+                                            </div>
+
+                                            {{-- URL Field --}}
+                                            <div x-show="type === 'url'" x-cloak>
+                                                <label class="block mb-1 text-xs text-slate-500">
+                                                    {{ __('Video URL') }}
+                                                    <span x-show="provider === 'youtube'">(YouTube)</span>
+                                                    <span x-show="provider === 'vimeo'">(Vimeo)</span>
+                                                </label>
+
+                                                <input type="text"
+                                                    wire:model.defer="videos.{{ $index }}.url"
+                                                    :placeholder="urlPlaceholder" class="w-full rounded-lg input" />
+
+
+                                                @error("videos.$index.url")
+                                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+
+                                            {{-- Iframe Field --}}
+                                            <div x-show="type === 'iframe'" x-cloak>
+                                                <label
+                                                    class="block mb-1 text-xs text-slate-500">{{ __('Iframe embed code') }}</label>
+
+                                                <textarea wire:model.defer="videos.{{ $index }}.iframe" rows="4" placeholder="<iframe ...></iframe>"
+                                                    class="w-full rounded-lg textarea"></textarea>
+
+                                                @error("videos.$index.iframe")
+                                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+
+                                            <div class="flex justify-end">
+                                                <button type="button" wire:click="removeVideo({{ $index }})"
+                                                    class="bg-red-500 text-white hover:bg-red-700 rounded-lg px-4 py-2 transition-all">
+                                                    <flux:icon name="trash" class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @endforeach
+
+                                </div>
+
+                                <button type="button" wire:click="addVideo"
+                                    class="bg-accent text-white hover:bg-accent-dark rounded-lg px-4 py-2 text-sm transition-all">
+                                    {{ __('Add video') }}
+                                </button>
+                            </div>
+
+
 
                         </div>
                     </div>
@@ -1222,6 +1441,15 @@ new class extends Component {
                                 );
 
                                 $vContent = (string) ($viewing->content ?? '');
+
+                                // videos: قد تكون array أو JSON string
+                                $vVideos = $viewing->videos ?? [];
+                                if (is_string($vVideos)) {
+                                    $decoded = json_decode($vVideos, true);
+                                    $vVideos = is_array($decoded) ? $decoded : [];
+                                }
+                                $vVideos = is_array($vVideos) ? $vVideos : [];
+
                             @endphp
 
                             {{-- Features --}}
@@ -1287,6 +1515,106 @@ new class extends Component {
                                     </div>
                                 </div>
                             @endif
+{{-- Videos --}}
+@if (count($vVideos))
+    <div
+        class="rounded-2xl p-4 sm:p-5
+               ring-1 ring-slate-200/70 dark:ring-slate-700/70
+               bg-white dark:bg-slate-900">
+
+        {{-- Header --}}
+        <div class="flex items-center justify-between mb-4">
+            <h4 class="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <flux:icon name="play-circle" class="w-4 h-4 text-accent" />
+                {{ __('Videos') }}
+            </h4>
+            <span class="text-xs text-slate-500 dark:text-slate-400">
+                {{ count($vVideos) }}
+            </span>
+        </div>
+
+        {{-- Videos Grid --}}
+        <div class="grid sm:grid-cols-2 gap-4">
+            @foreach ($vVideos as $vid)
+                @php
+                    $type = $vid['type'] ?? 'url';
+                    $title = $vid['title'] ?? null;
+                    $url = $vid['url'] ?? null;
+                    $iframe = $vid['iframe'] ?? null;
+
+                    // Detect YouTube / Vimeo
+                    $embedUrl = null;
+
+                    if ($type === 'url' && $url) {
+                        // YouTube
+                        if (preg_match('~(?:youtube\.com/watch\?v=|youtu\.be/)([^&?/]+)~', $url, $m)) {
+                            $embedUrl = 'https://www.youtube.com/embed/' . $m[1];
+                        }
+
+                        // Vimeo
+                        elseif (preg_match('~vimeo\.com/(\d+)~', $url, $m)) {
+                            $embedUrl = 'https://player.vimeo.com/video/' . $m[1];
+                        }
+                    }
+                @endphp
+
+                <div
+                    class="group rounded-2xl overflow-hidden
+                           bg-slate-50/70 dark:bg-slate-950/30
+                           ring-1 ring-slate-200/70 dark:ring-slate-700/70
+                           hover:shadow-lg transition">
+
+                    {{-- Video Frame --}}
+                    <div class="relative aspect-video bg-black/5 dark:bg-black/30">
+                        @if ($type === 'iframe' && $iframe)
+                            {{-- Raw iframe (trusted only) --}}
+                            <div class="absolute inset-0">
+                                {!! $iframe !!}
+                            </div>
+
+                        @elseif ($embedUrl)
+                            {{-- YouTube / Vimeo embed --}}
+                            <iframe
+                                src="{{ $embedUrl }}"
+                                class="absolute inset-0 w-full h-full"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen>
+                            </iframe>
+
+                        @elseif ($url)
+                            {{-- Fallback link --}}
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <a href="{{ $url }}" target="_blank"
+                                   class="inline-flex items-center gap-2
+                                          px-4 py-2 rounded-xl
+                                          bg-accent text-white text-sm font-medium
+                                          hover:opacity-90 transition">
+                                    <flux:icon name="arrow-top-right-on-square" class="w-4 h-4" />
+                                    {{ __('Open video') }}
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- Footer --}}
+                    <div class="p-3 space-y-1">
+                        <p class="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                            {{ $title ?: __('Untitled video') }}
+                        </p>
+
+                        <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                            <flux:icon name="film" class="w-3.5 h-3.5" />
+                            {{ ucfirst($type) }}
+                        </p>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+@endif
+
+
 
                         </div>
                     </div>
