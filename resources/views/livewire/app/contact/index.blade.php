@@ -154,4 +154,38 @@ new class extends Component {
             </section>
         @endif
     </div>
+
+    <br>
+    <br>
+    
+    <form id="subscribeForm">
+        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        <button type="submit">Subscribe</button>
+    </form>
+
+    <script>
+        document.getElementById('subscribeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+
+            fetch('/api/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message); // عرض رسالة النجاح
+                })
+                .catch(error => {
+                    alert('An error occurred: ' + error.message); // عرض رسالة الخطأ
+                });
+        });
+    </script>
 </div>
