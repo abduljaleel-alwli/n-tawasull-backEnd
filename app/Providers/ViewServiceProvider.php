@@ -16,7 +16,7 @@ class ViewServiceProvider extends ServiceProvider
 
         View::composer('components.layouts.app.admin', function ($view) {
             $platform = app(PlatformConfigService::class)->get();
-            $view->with('platformConfig', $platform);
+            $view->with('platformConfig', $platform ?? []);
         });
     }
 }

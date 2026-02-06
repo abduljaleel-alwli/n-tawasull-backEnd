@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('products', function (Blueprint $table) {
+        Schema::create('projects', function (Blueprint $table) {
             $table->id();
 
             $table->string('title');
@@ -21,10 +21,14 @@ return new class extends Migration {
                 ->constrained()
                 ->nullOnDelete();
 
-            $table->json('tags')->nullable();
-            
             $table->string('main_image')->nullable();
             $table->json('images')->nullable();
+
+            // إضافة العمود "features" لتخزين العنوان والوصف
+            $table->json('features')->nullable();
+
+            // إضافة العمود "content" لتخزين محتوى HTML
+            $table->text('content')->nullable();
 
             $table->boolean('is_active')->default(true);
             $table->integer('display_order')->default(0);
@@ -44,6 +48,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('products');
+        Schema::dropIfExists('projects');
     }
 };

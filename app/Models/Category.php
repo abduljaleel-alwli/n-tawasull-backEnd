@@ -30,6 +30,11 @@ class Category extends Model
         return $this->hasMany(Product::class);
     }
 
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
+    }
+
     /* =====================
        Scopes
     ===================== */

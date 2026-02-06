@@ -37,6 +37,9 @@
 </style>
 
 
+{{-- tinymce Editore --}}
+<script src="https://cdn.tiny.cloud/1/{{ config('services.tinymce.key') }}/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=Tajawal:400,500,600" rel="stylesheet" />
 

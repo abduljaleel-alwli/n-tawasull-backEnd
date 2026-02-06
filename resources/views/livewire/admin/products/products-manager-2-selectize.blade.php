@@ -39,7 +39,7 @@ new class extends Component {
     public $main_image = null;
     public array $images = [];
     public bool $is_active = true;
-    public string $tags = '';
+    public array $tags = []; // تعريفها كمصفوفة فارغة
 
     /** Data */
     public $categories = [];
@@ -53,6 +53,11 @@ new class extends Component {
             ->orderBy('name')
             ->get(['id', 'name']);
 
+        // جلب الـ tags المضافة مسبقًا من جميع المنتجات
+        $this->tags = Product::pluck('tags')
+            ->flatten() // Flatten لجعلها مصفوفة مسطحة
+            ->unique() // إزالة التكرار
+            ->toArray(); // تحويلها إلى مصفوفة عادية
         $this->loadProducts();
     }
 
@@ -88,6 +93,9 @@ new class extends Component {
     {
         $this->resetForm();
         $this->showModal = true;
+
+        // استخدام dispatch لإطلاق الحدث عند فتح الـ modal
+        $this->dispatch('modalOpened');
     }
 
     public function edit(Product $product): void
@@ -100,10 +108,13 @@ new class extends Component {
         $this->is_active = (bool) $product->is_active;
         $this->display_order = (int) $product->display_order;
 
-        // تهيئة الـ tags
-        $this->tags = $product->tags ? implode(', ', json_decode($product->tags)) : '';
+        // تهيئة الـ tags بشكل صحيح
+        $this->tags = $product->tags ? json_decode($product->tags, true) : [];
 
         $this->showModal = true;
+
+        // استخدام dispatch لإطلاق الحدث عند فتح الـ modal
+        $this->dispatch('modalOpened');
     }
 
     public function save(CreateProduct $create, UpdateProduct $update): void
@@ -116,12 +127,15 @@ new class extends Component {
             'images' => ['nullable', 'array'],
             'images.*' => ['nullable', 'image', 'max:10240'],
             'is_active' => ['boolean'],
-            'tags' => ['nullable', 'string'],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['nullable', 'string', 'max:50'],
         ]);
 
-        // تحويل الـ tags من نص إلى مصفوفة (إذا كانت موجودة)
+        dd($this->tags);
+
+        // التأكد من أن الـ tags ليست فارغة
         if (!empty($this->tags)) {
-            $data['tags'] = array_map('trim', explode(',', $this->tags)); // تحويل النص إلى مصفوفة
+            $data['tags'] = $this->tags; // استخدام الـ tags كما هي
         }
 
         if ($this->editing) {
@@ -214,7 +228,7 @@ new class extends Component {
 
     private function resetForm(): void
     {
-        $this->reset(['editing', 'title', 'description', 'category_id', 'main_image', 'images', 'is_active', 'tags']);
+        $this->reset(['editing', 'title', 'description', 'category_id', 'main_image', 'images', 'is_active']);
 
         $this->is_active = true;
         $this->display_order = 0;
@@ -685,17 +699,24 @@ new class extends Component {
                             </div>
 
                             {{-- Tags --}}
-                            <div>
+                            <div class="h-[200px]">
                                 <label class="block mb-1 text-xs font-medium text-slate-500">
                                     {{ __('Tags') }}
                                 </label>
-                                <input type="text" wire:model.defer="tags"
-                                    placeholder="{{ __('Enter tags, separated by commas') }}"
-                                    class="w-full rounded-lg input @error('tags') ring-1 ring-red-500 @enderror" />
+                                <select wire:model.defer="tags" id="tags" multiple
+                                    class="selectize-input w-full rounded-lg  h-[160px] @error('tags') ring-1 ring-red-500 @enderror">
+                                    <!-- عرض الـ tags الموجودة في الـ select -->
+                                    @foreach ($tags as $tag)
+                                        <option value="{{ $tag }}"
+                                            {{ in_array($tag, $tags) ? 'selected' : '' }}>{{ $tag }}</option>
+                                    @endforeach
+                                </select>
                                 @error('tags')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
+
+
 
                             {{-- Images --}}
                             <div class="space-y-6">
@@ -805,46 +826,40 @@ new class extends Component {
                         </label>
 
                         <div class="flex gap-2">
-                            <button type="button" wire:click="closeModal" wire:loading.attr="disabled"
-                                wire:target="closeModal,save"
-                                class="w-full sm:w-auto px-4 py-2 rounded-xl
-               bg-slate-200 hover:bg-slate-300
-               dark:bg-slate-800 dark:hover:bg-slate-700
-               text-slate-900 dark:text-slate-100
-               inline-flex items-center justify-center gap-2
-               disabled:opacity-60 disabled:cursor-not-allowed">
-                                <svg wire:loading wire:target="closeModal" class="h-4 w-4 animate-spin"
-                                    viewBox="0 0 24 24" fill="none">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor"
-                                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
-                                    </path>
-                                </svg>
-
-                                <span wire:loading.remove wire:target="closeModal"> {{ __('Cancel') }}</span>
-                                <span wire:loading wire:target="closeModal"> {{ __('Canceling...') }}</span>
+                            <button wire:click="closeModal" wire:loading.attr="disabled" wire:target="save"
+                                class="px-4 py-2 rounded-lg text-sm
+           bg-slate-200 dark:bg-slate-800
+           hover:opacity-80 transition
+           disabled:opacity-50 disabled:cursor-not-allowed">
+                                {{ __('Cancel') }}
                             </button>
 
 
+                            <button wire:click="save" wire:loading.attr="disabled" wire:target="save"
+                                class="relative inline-flex items-center justify-center gap-2
+           px-5 py-2.5 rounded-lg text-sm font-medium
+           bg-accent text-white
+           transition
+           hover:opacity-90
+           disabled:opacity-60 disabled:cursor-not-allowed">
 
-                            <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save"
-                                class="w-full sm:w-auto px-4 py-2 rounded-xl
-               bg-accent hover:opacity-95
-               text-white font-medium shadow
-               inline-flex items-center justify-center gap-2
-               disabled:opacity-60 disabled:cursor-not-allowed">
-                                <svg wire:loading wire:target="save" class="h-4 w-4 animate-spin" viewBox="0 0 24 24"
-                                    fill="none">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor"
-                                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
-                                    </path>
-                                </svg>
+                                {{-- الحالة العادية --}}
+                                <span wire:loading.remove wire:target="save">
+                                    {{ __('Save') }}
+                                </span>
 
-                                <span wire:loading.remove wire:target="save">{{ __('Save') }}</span>
-                                <span wire:loading wire:target="save">{{ __('Saving...') }}</span>
+                                {{-- حالة التحميل --}}
+                                <span wire:loading wire:target="save" class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg"
+                                        fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+                                        </path>
+                                    </svg>
+                                    {{ __('Saving...') }}
+                                </span>
                             </button>
 
                         </div>
@@ -852,6 +867,9 @@ new class extends Component {
 
                 </div>
             </div>
+
+
+
         </div>
     @endif
 
@@ -877,19 +895,8 @@ new class extends Component {
                             {{ __('Product details') }}
                         </h3>
 
-                        <button type="button" wire:click="closeViewModal" wire:loading.attr="disabled"
-                            wire:target="closeViewModal"
-                            class="text-slate-400 hover:text-slate-600">
-                            <svg wire:loading wire:target="closeViewModal" class="h-4 w-4 animate-spin"
-                                viewBox="0 0 24 24" fill="none">
-                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                    stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
-                                </path>
-                            </svg>
-
-                            <span wire:loading.remove wire:target="closeViewModal">✕</span>
-                            <span wire:loading wire:target="closeViewModal"> {{ __('Closing...') }}</span>
+                        <button wire:click="closeViewModal" class="text-slate-400 hover:text-slate-600">
+                            ✕
                         </button>
                     </div>
 
@@ -1003,4 +1010,31 @@ new class extends Component {
     {{-- Delete Confirmation Modal --}}
     <x-modals.confirm :show="$showDeleteModal" type="danger" :title="__('Delete product')" :message="__('Are you sure you want to delete this product? This action cannot be undone.')" :confirmAction="'wire:click=confirmDelete'"
         :cancelAction="'wire:click=cancelDelete'" confirmLoadingTarget="confirmDelete" :confirmText="__('Yes, delete')" />
+
+    {{-- Selectize --}}
+    <script>
+        // الاستماع لحدث 'modalOpened' الذي تم إطلاقه من Livewire
+        window.addEventListener('modalOpened', function() {
+            // تأكد من أن jQuery و Selectize.js تم تحميلهما بشكل صحيح
+            if (window.jQuery) {
+                // تهيئة Selectize بعد فتح الـ modal
+                $('#tags').selectize({
+                    plugins: ['remove_button'],
+                    delimiter: ',',
+                    persist: false,
+                    create: true,
+                    maxItems: null,
+                    valueField: 'value',
+                    labelField: 'label',
+                    searchField: 'label',
+                    items: @this.entangle('tags').defer, // تأكد من الربط الصحيح
+                    onChange: function(value) {
+                        @this.set('tags', value); // تأكد من أن الـ tags يتم تحديثها عند التغيير
+                    }
+                });
+            } else {
+                console.error("jQuery is not loaded correctly. Ensure jQuery is loaded before Selectize.");
+            }
+        });
+    </script>
 </div>

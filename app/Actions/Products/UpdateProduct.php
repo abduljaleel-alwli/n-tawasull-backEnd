@@ -5,6 +5,7 @@ namespace App\Actions\Products;
 use App\Models\Product;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use App\Support\Auditable;
 
 class UpdateProduct
@@ -16,8 +17,6 @@ class UpdateProduct
         Gate::authorize('update', $product);
 
         return DB::transaction(function () use ($product, $data) {
-            
-
             /* =====================
                Main Image
             ===================== */
@@ -59,7 +58,6 @@ class UpdateProduct
                 $product->images = $paths;
             }
 
-
             /* =====================
                Update Fields
             ===================== */
@@ -70,15 +68,17 @@ class UpdateProduct
                 'category_id' => $data['category_id'] ?? null,
                 'is_active' => $data['is_active'] ?? $product->is_active,
                 'display_order' => $data['display_order'] ?? $product->display_order,
+                'tags' => !empty($data['tags']) ? json_encode($data['tags']) : null, // إضافة الـ tags هنا
             ]);
 
             /* =====================
-               Sync Tags (NEW)
+            Update Tags
             ===================== */
+            // if (array_key_exists('tags', $data) && !empty($data['tags'])) {
+            //     $tags = is_string($data['tags']) ? array_map('trim', explode(',', $data['tags'])) : $data['tags'];
+            //     $product->tags = !empty($tags) ? json_encode($tags) : null;
+            // }
 
-            if (array_key_exists('tags', $data) && is_array($data['tags'])) {
-                $product->syncTags($data['tags']);
-            }
 
             /* =====================
                Audit
@@ -86,7 +86,6 @@ class UpdateProduct
 
             $this->audit('product.updated', $product, [
                 'updated_fields' => array_keys($data),
-                'tags' => $product->tags->pluck('name')->toArray(),
             ]);
 
             return $product->refresh();

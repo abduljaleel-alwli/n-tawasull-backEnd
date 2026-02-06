@@ -21,6 +21,12 @@ class DeleteCategory
             ]);
         }
 
+        if ($category->projects()->exists()) {
+            throw ValidationException::withMessages([
+                'category' => __('Cannot delete a category that has projects'),
+            ]);
+        }
+
         $category->delete();
     }
 }

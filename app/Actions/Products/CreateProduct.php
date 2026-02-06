@@ -21,7 +21,7 @@ class CreateProduct
 
         return DB::transaction(function () use ($data) {
 
-            /* =====================
+            /* ===================== 
                Images Handling
             ===================== */
 
@@ -37,13 +37,13 @@ class CreateProduct
                 }
             }
 
-            /* =====================
+            /* ===================== 
                Display Order
             ===================== */
 
             $nextOrder = (Product::max('display_order') ?? 0) + 1;
 
-            /* =====================
+            /* ===================== 
                Create Product
             ===================== */
 
@@ -56,23 +56,15 @@ class CreateProduct
                 'is_active' => $data['is_active'] ?? true,
                 'display_order' => $nextOrder,
                 'created_by' => Auth::id(),
+                'tags' => !empty($data['tags']) ? json_encode($data['tags']) : null, // إضافة الـ tags هنا
             ]);
 
-            /* =====================
-               Sync Tags (NEW)
-            ===================== */
-
-            if (!empty($data['tags']) && is_array($data['tags'])) {
-                $product->syncTags($data['tags']);
-            }
-
-            /* =====================
+            /* ===================== 
                Audit
             ===================== */
 
             $this->audit('product.created', $product, [
                 'title' => $product->title,
-                'tags'  => $product->tags->pluck('name')->toArray(),
             ]);
 
             return $product;

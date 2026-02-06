@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Category;
 use App\Models\User;
 
-class Product extends Model
+class Project extends Model
 {
     use HasFactory;
     use SoftDeletes;
@@ -22,7 +22,8 @@ class Product extends Model
         'category_id',
         'main_image',
         'images',
-        'tags',
+        'features',
+        'content',
         'is_active',
         'display_order',
         'created_by',
@@ -33,7 +34,10 @@ class Product extends Model
      */
     protected $casts = [
         'images' => 'array',
+        'features' => 'array',
+        'content' => 'string',
         'is_active' => 'boolean',
+        'display_order' => 'integer',
     ];
 
     /* =====================
@@ -55,7 +59,7 @@ class Product extends Model
     ===================== */
 
     /**
-     * Only active products.
+     * Only active projects.
      */
     public function scopeActive($query)
     {

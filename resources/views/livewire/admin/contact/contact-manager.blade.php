@@ -7,11 +7,12 @@ use App\Services\Settings\SettingsService;
 new class extends Component {
     use AuthorizesRequests;
 
+    public string $badge = '';
     public string $title = '';
     public string $description = '';
     public string $email_to = '';
     public string $phone = '';
-    public string $map_url = '';
+    public string $whatsapp = '';
     public string $location = '';
     public string $working_time = '';
     public string $email_subject = '';
@@ -23,11 +24,12 @@ new class extends Component {
         // Only admin & super-admin (super-admin bypass via Gate::before)
         $this->authorize('access-dashboard');
 
+        $this->badge = (string) $settings->get('contact.badge', '');
         $this->title = (string) $settings->get('contact.title', '');
         $this->description = (string) $settings->get('contact.description', '');
         $this->email_to = (string) $settings->get('contact.email_to', '');
         $this->phone = (string) $settings->get('contact.phone', '');
-        $this->map_url = (string) $settings->get('contact.map_url', '');
+        $this->whatsapp = (string) $settings->get('contact.whatsapp', '');
         $this->location = (string) $settings->get('contact.location', '');
         $this->working_time = (string) $settings->get('contact.working_time', '');
         $this->email_subject = (string) $settings->get('contact.email_subject', '');
@@ -55,11 +57,12 @@ new class extends Component {
     {
         try {
             $this->validate([
+                'badge' => ['required', 'string', 'max:255'],
                 'title' => ['required', 'string', 'max:255'],
                 'description' => ['required', 'string'],
                 'email_to' => ['required', 'email'],
                 'phone' => ['nullable', 'string', 'max:50'],
-                'map_url' => ['nullable', 'string', 'max:500'],
+                'whatsapp' => ['nullable', 'string', 'max:50'],
                 'location' => ['nullable', 'string', 'max:255'],
                 'working_time' => ['nullable', 'string', 'max:255'],
                 'email_subject' => ['required', 'string', 'max:255'],
@@ -75,11 +78,12 @@ new class extends Component {
         }
 
         // Save only if validation passed
+        $settings->set('contact.badge', $this->badge, 'string', 'contact');
         $settings->set('contact.title', $this->title, 'string', 'contact');
         $settings->set('contact.description', $this->description, 'text', 'contact');
         $settings->set('contact.email_to', $this->email_to, 'string', 'contact');
         $settings->set('contact.phone', $this->phone, 'string', 'contact');
-        $settings->set('contact.map_url', $this->map_url, 'string', 'contact');
+        $settings->set('contact.whatsapp', $this->whatsapp, 'string', 'contact');
         $settings->set('contact.location', $this->location, 'string', 'contact');
         $settings->set('contact.working_time', $this->working_time, 'string', 'contact');
         $settings->set('contact.email_subject', $this->email_subject, 'string', 'contact');
@@ -104,7 +108,6 @@ new class extends Component {
     protected function failedValidation(): void
     {
         // Force Livewire to re-sync state after validation failure
-        $this->map_url = (string) $this->map_url;
         $this->social_links = array_values($this->social_links);
     }
 };
@@ -148,6 +151,17 @@ new class extends Component {
         {{-- Body --}}
         <div class="p-6 space-y-6">
 
+            {{-- Badge --}}
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ __('badge') }}</label>
+                <input wire:model.defer="badge"
+                    class="input w-full focus:ring-accent/40 @error('badge') ring-1 ring-red-500 @enderror"
+                    placeholder="{{ __('Contact page badge') }}" />
+                @error('badge')
+                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
             {{-- Title --}}
             <div>
                 <label class="block text-xs text-slate-500 mb-1">{{ __('Title') }}</label>
@@ -181,14 +195,7 @@ new class extends Component {
                     @enderror
                 </div>
 
-                <div>
-                    <label class="block text-xs text-slate-500 mb-1">{{ __('Phone number') }}</label>
-                    <input wire:model.defer="phone" class="input w-full @error('phone') ring-1 ring-red-500 @enderror"
-                        placeholder="+970 599 000 000" />
-                    @error('phone')
-                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+               
 
                 <div>
                     <label class="block text-xs text-slate-500 mb-1">{{ __('Location') }}</label>
@@ -200,6 +207,24 @@ new class extends Component {
                     @enderror
                 </div>
 
+                 <div>
+                    <label class="block text-xs text-slate-500 mb-1">{{ __('Phone number') }}</label>
+                    <input wire:model.defer="phone" class="input w-full @error('phone') ring-1 ring-red-500 @enderror"
+                        placeholder="+970 599 000 000" />
+                    @error('phone')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-xs text-slate-500 mb-1">{{ __('WhatsApp number') }}</label>
+                    <input wire:model.defer="whatsapp" class="input w-full @error('whatsapp') ring-1 ring-red-500 @enderror"
+                        placeholder="+970 599 000 000" />
+                    @error('whatsapp')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+]
                 <div>
                     <label class="block text-xs text-slate-500 mb-1">{{ __('Working time') }}</label>
                     <input wire:model.defer="working_time"
@@ -219,15 +244,6 @@ new class extends Component {
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
-            </div>
-
-            <div>
-                <label class="block text-xs text-slate-500 mb-1">{{ __('Google Maps URL') }}</label>
-                <input wire:model.defer="map_url" class="input w-full @error('map_url') ring-1 ring-red-500 @enderror"
-                    placeholder="https://maps.google.com/..." />
-                @error('map_url')
-                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                @enderror
             </div>
 
         </div>

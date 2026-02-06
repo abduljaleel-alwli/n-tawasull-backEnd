@@ -35,6 +35,11 @@
                     {{ __('Products') }}
                 </flux:navlist.item>
 
+                <flux:navlist.item icon="cube" :href="route('admin.projects')"
+                    :current="request()->routeIs('admin.projects')" wire:navigate>
+                    {{ __('Projects') }}
+                </flux:navlist.item>
+
                 <flux:navlist.item icon="tag" :href="route('admin.categories')"
                     :current="request()->routeIs('admin.categories')" wire:navigate>
                     {{ __('Categories') }}
@@ -74,6 +79,21 @@
                     {{ __('About') }}
                 </flux:navlist.item>
 
+                <flux:navlist.item icon="users" :href="route('admin.partners')"
+                    :current="request()->routeIs('admin.partners')" wire:navigate>
+                    {{ __('Partners') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item icon="star" :href="route('admin.reviews')"
+                    :current="request()->routeIs('admin.reviews')" wire:navigate>
+                    {{ __('Reviews') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item icon="question-mark-circle" :href="route('admin.faqs')"
+                    :current="request()->routeIs('admin.faqs')" wire:navigate>
+                    {{ __('FAQs') }}
+                </flux:navlist.item>
+
                 <flux:navlist.item icon="phone" :href="route('admin.contact')"
                     :current="request()->routeIs('admin.contact')" wire:navigate>
                     {{ __('Contact') }}
@@ -109,19 +129,11 @@
                 $locale = app()->getLocale();
             @endphp
 
-
             @if ($developerSupportCta && ($developerSupportCta['enabled'] ?? false))
-                <flux:navlist.item
-                    icon="chat-bubble-left-right"
-                    href="{{ $developerSupportCta['action']['url'] }}"
+                <flux:navlist.item icon="chat-bubble-left-right" href="{{ $developerSupportCta['action']['url'] }}"
                     target="_blank">
-
-                    {{ 
-                        data_get($developerSupportCta, "label.$locale")
-                        ?? data_get($developerSupportCta, 'label.ar')
-                        ?? __('Dev Support')
-                    }}
-
+                    {{ data_get($developerSupportCta, "label.$locale") ??
+                        (data_get($developerSupportCta, 'label.ar') ?? __('Dev Support')) }}
                 </flux:navlist.item>
             @else
                 {{-- Skeleton Placeholder --}}
@@ -130,6 +142,7 @@
                     <x-skeleton.line w="w-28" h="h-4" />
                 </div>
             @endif
+
 
         </flux:navlist>
 
@@ -230,6 +243,7 @@
 
     @fluxScripts
     @stack('scripts')
+
 </body>
 
 </html>

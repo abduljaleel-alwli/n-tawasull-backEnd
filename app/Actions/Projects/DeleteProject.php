@@ -1,52 +1,51 @@
 <?php
 
-namespace App\Actions\Products;
+namespace App\Actions\Projects;
 
-use App\Models\Product;
+use App\Models\Project;
 use App\Support\Auditable;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
-class DeleteProduct
+class DeleteProject
 {
     use Auditable;
 
-    public function execute(Product $product): void
+    public function execute(Project $project): void
     {
-        Gate::authorize('delete', $product);
+        Gate::authorize('delete', $project);
 
-        DB::transaction(function () use ($product) {
-
+        DB::transaction(function () use ($project) {
             /* =====================
                Delete Images
             ===================== */
 
-            if ($product->main_image) {
-                Storage::disk('public')->delete($product->main_image);
+            if ($project->main_image) {
+                Storage::disk('public')->delete($project->main_image);
             }
 
-            if (is_array($product->images)) {
-                foreach ($product->images as $image) {
+            if (is_array($project->images)) {
+                foreach ($project->images as $image) {
                     Storage::disk('public')->delete($image);
                 }
             }
 
             /* =====================
-               Soft Delete Product
+               Soft Delete Project
             ===================== */
 
-            $product->delete();
+            $project->delete();
 
             /* =====================
                Audit
             ===================== */
 
             $this->audit(
-                'product.deleted',
-                $product,
+                'project.deleted',
+                $project,
                 [
-                    'title' => $product->title,
+                    'title' => $project->title,
                 ]
             );
         });

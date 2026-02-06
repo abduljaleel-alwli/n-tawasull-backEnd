@@ -63,6 +63,10 @@ Route::middleware(['auth', 'verified', 'role:admin|super-admin'])
         Volt::route('/products', 'admin.products.products-manager')
             ->name('products');
 
+        // Projects Management
+        Volt::route('/projects', 'admin.projects.projects-manager')
+            ->name('projects');
+
         // Categories Management
         Volt::route('/categories', 'admin.categories.categories-manager')
             ->name('categories');
@@ -71,6 +75,17 @@ Route::middleware(['auth', 'verified', 'role:admin|super-admin'])
         // Settings Management (CMS Settings)
         Volt::route('/settings', 'admin.settings')
             ->name('settings');
+
+
+        // Partners Management
+        Volt::route('/partners', 'admin.partners.partners-manager')->name('partners');
+
+        // Reviews Management
+        Volt::route('/reviews', 'admin.reviews.reviews-manager')->name('reviews');
+
+
+        // FAQs Management
+        Volt::route('/faqs', 'admin.faqs.faqs-manager')->name('faqs');
 
         // About Management
         Volt::route('/about', 'admin.about.about-manager')->name('about');

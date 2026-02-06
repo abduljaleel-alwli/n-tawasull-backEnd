@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->string('name');
             $table->string('email');
             $table->text('message');
+            $table->string('attachment_path')->nullable();
 
             $table->string('ip_address', 45)->nullable();
             $table->string('phone')->nullable();

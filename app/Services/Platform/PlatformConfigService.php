@@ -4,6 +4,7 @@ namespace App\Services\Platform;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\Client\ConnectionException;
 
 class PlatformConfigService
 {
@@ -12,11 +13,31 @@ class PlatformConfigService
     public function get(): array
     {
         return Cache::remember('platform.config.json', now()->addHours(6), function () {
-            $response = Http::timeout(5)->get($this->url);
+            try {
+                $response = Http::timeout(10)->get($this->url);
 
-            return $response->successful()
-                ? $response->json()
-                : [];
+                // إذا كانت الاستجابة ناجحة
+                if ($response->successful()) {
+                    return $response->json();
+                }
+
+                // في حالة الفشل، يمكن إرجاع بيانات افتراضية
+                return [];
+
+            } catch (ConnectionException $e) {
+                // يمكنك تسجيل الخطأ في السجل في حال حدوث مشكلة في الاتصال
+                \Log::error('فشل الاتصال مع API: ' . $e->getMessage());
+
+                // في حالة حدوث خطأ، يمكن إرجاع بيانات افتراضية لتجنب تعطل الموقع
+                return [];
+            } catch (\Exception $e) {
+                // في حالة أي أخطاء أخرى
+                \Log::error('حدث خطأ غير متوقع: ' . $e->getMessage());
+
+                // يمكن إرجاع بيانات افتراضية
+                return [];
+            }
         });
     }
 }
+
