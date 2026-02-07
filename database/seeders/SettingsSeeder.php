@@ -149,41 +149,17 @@ class SettingsSeeder extends Seeder
         );
 
         $s->set(
-            'about.features',
+            'features.items',
             [
                 [
-                    'title' => 'توريد موثوق',
-                    'description' => 'نوفر مواد الحديد والصاج والمواسير بمواصفات ثابتة وتوريد منتظم للمشاريع.',
-                    'icon_type' => 'flux',
-                    'icon_value' => 'user',
-                ],
-                [
-                    'title' => 'جودة ومعايير',
-                    'description' => 'نلتزم بالمقاسات والمعايير المطلوبة لضمان قوة التحمل والسلامة في الاستخدام.',
-                    'icon_type' => 'flux',
-                    'icon_value' => 'beaker',
-                ],
-                [
-                    'title' => 'خدمة سريعة',
-                    'description' => 'متابعة الطلبات وتجهيزها بسرعة مع دعم فني لاختيار المقاسات المناسبة لمشروعك.',
-                    'icon_type' => 'flux',
-                    'icon_value' => 'flag',
-                ],
-                [
-                    'title' => 'رؤيتنا',
-                    'description' => 'أن نكون الخيار الأول في توريد الحديد ومستلزمات البناء بجودة موثوقة وسعر منافس.',
-                    'icon_type' => 'flux',
-                    'icon_value' => 'eye',
-                ],
-                [
-                    'title' => 'رسالتنا',
-                    'description' => 'تزويد عملائنا بمواد حديد وصاج ومواسير وزوايا وجسور بمقاسات متعددة، مع استشارة سريعة وتوريد منظم يضمن نجاح مشاريعهم.',
-                    'icon_type' => 'flux',
-                    'icon_value' => 'chat-bubble-left-right',
+                    'title' => '',
+                    'description' => '',
+                    'icon_type' => 'svg',
+                    'icon_value' => '',
                 ],
             ],
             'json',
-            'about'
+            'features'
         );
 
     }

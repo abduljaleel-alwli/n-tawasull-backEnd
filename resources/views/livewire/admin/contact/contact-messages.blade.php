@@ -459,6 +459,7 @@ new class extends Component {
                 @endforeach
             </div>
 
+            <span class="mx-1 text-slate-400">|</span>
 
             <div class="flex items-center gap-2">
                 @foreach (['all' => __('All'), 'unread' => __('Unread'), 'read' => __('Read')] as $key => $label)
@@ -693,6 +694,23 @@ new class extends Component {
                             <p class="text-slate-900 dark:text-slate-100">
                                 {{ $selected->created_at->format('Y-m-d H:i') }}</p>
                         </div>
+
+                        {{-- Project Type --}}
+                        @if ($selected->project_type)
+                            <div class="sm:col-span-2">
+                                <p class="text-xs text-slate-500">{{ __('Project Type') }}</p>
+                                <p class="text-slate-900 dark:text-slate-100">{{ $selected->project_type }}</p>
+                            </div>
+                        @endif
+
+                        {{-- Services --}}
+                        @if ($selected->services && count($selected->services) > 0)
+                            <div class="sm:col-span-2">
+                                <p class="text-xs text-slate-500">{{ __('Selected Services') }}</p>
+                                <p class="text-slate-900 dark:text-slate-100">{{ implode(', ', $selected->services) }}
+                                </p>
+                            </div>
+                        @endif
                     </div>
 
                     {{-- Message --}}

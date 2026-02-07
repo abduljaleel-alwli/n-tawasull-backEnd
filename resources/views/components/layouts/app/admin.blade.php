@@ -66,6 +66,10 @@
 
                 </flux:navlist.item>
 
+                <flux:navlist.item icon="envelope" :href="route('admin.newsletter')"
+                    :current="request()->routeIs('admin.newsletter')" wire:navigate>
+                    {{ __('Newsletter') }}
+                </flux:navlist.item>
 
             </flux:navlist.group>
         </flux:navlist>
@@ -74,9 +78,14 @@
         <flux:navlist variant="outline">
             <flux:navlist.group :heading="__('Pages')" class="grid">
 
-                <flux:navlist.item icon="information-circle" :href="route('admin.about')"
-                    :current="request()->routeIs('admin.about')" wire:navigate>
-                    {{ __('About') }}
+                <flux:navlist.item icon="rocket-launch" :href="route('admin.hero')"
+                    :current="request()->routeIs('admin.hero')" wire:navigate>
+                    {{ __('Hero') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item icon="information-circle" :href="route('admin.features')"
+                    :current="request()->routeIs('admin.features')" wire:navigate>
+                    {{ __('Features') }}
                 </flux:navlist.item>
 
                 <flux:navlist.item icon="users" :href="route('admin.partners')"

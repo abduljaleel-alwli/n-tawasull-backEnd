@@ -16,10 +16,13 @@ class ContactMessage extends Model
         'read_at',
         'tag',
         'replied_at',
+        'project_type',
+        'services',
     ];
 
     protected $casts = [
         'read_at' => 'datetime',
         'replied_at' => 'datetime',
+        'services' => 'array',  // الكاست للعمود services ليتم تحويله إلى مصفوفة
     ];
 }

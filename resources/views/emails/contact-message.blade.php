@@ -74,6 +74,30 @@
                                         {{ $contact->ip_address ?? '—' }}
                                     </td>
                                 </tr>
+
+                                {{-- Project Type --}}
+                                @if($contact->project_type)
+                                    <tr>
+                                        <td style="padding:8px 0; font-weight:bold;">
+                                            {{ __('Project Type') }}:
+                                        </td>
+                                        <td style="padding:8px 0;">
+                                            {{ $contact->project_type }}
+                                        </td>
+                                    </tr>
+                                @endif
+
+                                                                {{-- Selected Services --}}
+                                @if($contact->services && count($contact->services) > 0)
+                                    <tr>
+                                        <td style="padding:8px 0; font-weight:bold;">
+                                            {{ __('Selected Services') }}:
+                                        </td>
+                                        <td style="padding:8px 0;">
+                                            {{ implode(', ', $contact->services) }}
+                                        </td>
+                                    </tr>
+                                @endif
                             </table>
 
                             {{-- Message --}}

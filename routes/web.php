@@ -71,11 +71,8 @@ Route::middleware(['auth', 'verified', 'role:admin|super-admin'])
         Volt::route('/categories', 'admin.categories.categories-manager')
             ->name('categories');
 
-
-        // Settings Management (CMS Settings)
-        Volt::route('/settings', 'admin.settings')
-            ->name('settings');
-
+        // Hero Management
+        Volt::route('/hero', 'admin.hero.hero-manager')->name('hero');
 
         // Partners Management
         Volt::route('/partners', 'admin.partners.partners-manager')->name('partners');
@@ -83,12 +80,14 @@ Route::middleware(['auth', 'verified', 'role:admin|super-admin'])
         // Reviews Management
         Volt::route('/reviews', 'admin.reviews.reviews-manager')->name('reviews');
 
-
         // FAQs Management
         Volt::route('/faqs', 'admin.faqs.faqs-manager')->name('faqs');
 
-        // About Management
-        Volt::route('/about', 'admin.about.about-manager')->name('about');
+        // Features Management
+        Volt::route('/features', 'admin.features.features-manager')->name('features');
+
+        // Newsletter Management
+        Volt::route('/newsletter', 'admin.newsletter.newsletter-manager')->name('newsletter');
 
         // Contact Management
         Volt::route('/contact', 'admin.contact.contact-manager')->name('contact');
@@ -100,6 +99,12 @@ Route::middleware(['auth', 'verified', 'role:admin|super-admin'])
         // Notifications Management
         Volt::route('/notifications', 'admin.notifications.notifications-manager')
             ->name('notifications');
+
+
+        // Settings Management (CMS Settings)
+        Volt::route('/settings', 'admin.settings')
+            ->name('settings');
+
 
     });
 

@@ -17,6 +17,8 @@ new class extends Component {
     public string $email = '';
     public string $phone = '';
     public string $message = '';
+    public string $project_type = '';
+    public array $services = [];
 
     // attachment (single file)
     public $attachment = null;
@@ -36,6 +38,9 @@ new class extends Component {
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'message' => ['required', 'string'],
+            'project_type' => ['required', 'string', 'max:255'],
+            'services' => ['required', 'array'],
+            'services.*' => ['string', 'max:255'],
 
             // file validation
             'attachment' => [
@@ -60,6 +65,8 @@ new class extends Component {
         $contactMessage = $store->execute(
             array_merge($data, [
                 'attachment_path' => $attachmentPath,
+                'project_type' => $this->project_type, // Add project_type to data
+                'services' => json_encode($this->services), // Store services as JSON
             ]),
             request()->ip(),
         );
@@ -80,7 +87,7 @@ new class extends Component {
             Mail::to($to)->send(new ContactMessageMail($contactMessage));
         }
 
-        $this->reset(['name', 'email', 'phone', 'message', 'attachment']);
+        $this->reset(['name', 'email', 'phone', 'message', 'attachment', 'project_type', 'services']);
 
         $this->submitting = false;
         $this->success = true;
@@ -119,6 +126,35 @@ new class extends Component {
             <input type="phone" wire:model.defer="phone" placeholder="{{ __('05xxxxxxxx') }}"
                 class="@error('phone') is-invalid @enderror" required>
             @error('phone')
+                <div class="af-error">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="af-field">
+            <label class="ms-3" for="project_type">{{ __('Project Type') }}</label>
+            <select wire:model.defer="project_type" class="af-select @error('project_type') is-invalid @enderror"
+                required>
+                <option value="">{{ __('Select Project Type') }}</option>
+                <option value="development">{{ __('Development') }}</option>
+                <option value="marketing">{{ __('Marketing') }}</option>
+                <option value="design">{{ __('Design') }}</option>
+                <!-- Add other types as needed -->
+            </select>
+            @error('project_type')
+                <div class="af-error">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="af-field">
+            <label class="ms-3" for="services">{{ __('Select Services') }}</label>
+            <select wire:model.defer="services" multiple class="af-select @error('services') is-invalid @enderror"
+                required>
+                <option value="web_development">{{ __('Web Development') }}</option>
+                <option value="seo">{{ __('SEO') }}</option>
+                <option value="social_media">{{ __('Social Media Marketing') }}</option>
+                <!-- Add other services as needed -->
+            </select>
+            @error('services')
                 <div class="af-error">{{ $message }}</div>
             @enderror
         </div>

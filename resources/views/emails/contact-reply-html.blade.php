@@ -73,6 +73,21 @@
                             {{ __('Thank you for contacting us. We have reviewed your message and are pleased to share our response below:') }}
                         </p>
 
+                                                <!-- Project Type -->
+                        @if($contact->project_type)
+                            <p>
+                                <strong>{{ __('Project Type:') }}</strong> {{ $contact->project_type }}
+                            </p>
+                        @endif
+
+                        <!-- Services -->
+                        @if($contact->services && count($contact->services) > 0)
+                            <p>
+                                <strong>{{ __('Selected Services:') }}</strong> 
+                                {{ implode(', ', $contact->services) }}
+                            </p>
+                        @endif
+                        
                         <!-- Reply Box -->
                         <div style="
                             background-color:#f8fafc;

@@ -19,6 +19,8 @@ class StoreContactMessage
             'message' => $data['message'],
             'attachment_path' => $data['attachment_path'] ?? null,
             'ip_address' => $ipAddress,
+            'project_type' => $data['project_type'], // Ensure project_type is stored correctly
+            'services' => json_decode($data['services']), // Ensure services is stored as JSON
         ]);
     }
 }

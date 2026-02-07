@@ -15,4 +15,8 @@ class NewsletterEmail extends Model
         'subscribed_at',
     ];
 
+    protected $casts = [
+    'subscribed_at' => 'datetime',
+];
+
 }

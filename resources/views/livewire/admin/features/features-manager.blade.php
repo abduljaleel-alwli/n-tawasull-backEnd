@@ -23,11 +23,11 @@ new class extends Component {
         // Only admin & super-admin (super-admin bypass via Gate::before)
         $this->authorize('access-dashboard');
 
-        $this->title = (string) $settings->get('about.title', '');
-        $this->subtitle = (string) $settings->get('about.subtitle', '');
-        $this->description = (string) $settings->get('about.description', '');
+        $this->title = (string) $settings->get('feature.title', '');
+        $this->subtitle = (string) $settings->get('feature.subtitle', '');
+        $this->description = (string) $settings->get('feature.description', '');
 
-        $this->features = (array) $settings->get('about.features', []);
+        $this->features = (array) $settings->get('feature.items', []);
     }
 
     public function addFeature(): void
@@ -87,10 +87,10 @@ new class extends Component {
             'features.*.icon_value' => ['nullable', 'string'],
         ]);
 
-        $settings->set('about.title', $this->title, 'string', 'about');
-        $settings->set('about.subtitle', $this->subtitle, 'string', 'about');
-        $settings->set('about.description', $this->description, 'text', 'about');
-        $settings->set('about.features', $this->features, 'json', 'about');
+        $settings->set('feature.title', $this->title, 'string', 'features');
+        $settings->set('feature.subtitle', $this->subtitle, 'string', 'features');
+        $settings->set('feature.description', $this->description, 'text', 'features');
+        $settings->set('feature.items', $this->features, 'json', 'features');
 
         // Toast (project-wide standard)
         $this->js(
@@ -100,7 +100,7 @@ new class extends Component {
                     detail: {
                         type: 'success',
                         message: '" .
-                __('About page updated successfully') .
+                __('Features page updated successfully') .
                 "'
                     }
                 })
@@ -115,8 +115,8 @@ new class extends Component {
 
     {{-- Page header --}}
     @include('partials.settings-heading', [
-        'title' => __('About page'),
-        'description' => __('Manage the content displayed on the About page'),
+        'title' => __('Features page'),
+        'description' => __('Manage the content displayed on the Features page'),
         'icon' => 'information-circle',
     ])
 
@@ -128,7 +128,7 @@ new class extends Component {
         <div class="flex items-center gap-2">
             <flux:icon name="information-circle" class="w-5 h-5 text-accent" />
             <h3 class="text-base font-semibold text-slate-900 dark:text-white">
-                {{ __('About content') }}
+                {{ __('Features content') }}
             </h3>
         </div>
 
@@ -140,7 +140,7 @@ new class extends Component {
 
             <input type="text" wire:model.defer="title"
                 class="input w-full @error('title') ring-1 ring-red-500 @enderror"
-                placeholder="{{ __('About page title') }}" />
+                placeholder="{{ __('Features page title') }}" />
 
             @error('title')
                 <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -167,14 +167,13 @@ new class extends Component {
 
             <textarea wire:model.defer="description" rows="5"
                 class="textarea w-full @error('description') ring-1 ring-red-500 @enderror"
-                placeholder="{{ __('Main description of the About page') }}"></textarea>
+                placeholder="{{ __('Main description of the Features page') }}"></textarea>
 
             @error('description')
                 <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
             @enderror
         </div>
     </div>
-
 
 
 

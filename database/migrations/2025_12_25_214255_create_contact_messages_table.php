@@ -25,6 +25,12 @@ return new class extends Migration {
             $table->string('tag')->nullable(); // sales | support | spam ...
             $table->timestamp('replied_at')->nullable();
 
+            // Adding the new column 'project_type'
+            $table->string('project_type')->nullable(); // The type of project (e.g., "development", "marketing", etc.)
+
+            // Adding the 'services' column (for multiple services selection)
+            $table->json('services')->nullable(); // The list of selected services
+            
             $table->timestamps();
         });
     }

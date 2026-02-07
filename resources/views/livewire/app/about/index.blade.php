@@ -13,11 +13,11 @@ new class extends Component {
 
     public function mount(): void
     {
-        $this->title = settings('about.title', 'من نحن');
-        $this->subtitle = settings('about.subtitle', '');
-        $this->description = settings('about.description', '');
+        $this->title = settings('features.title', 'مميزاتنا');
+        $this->subtitle = settings('features.subtitle', '');
+        $this->description = settings('features.description', '');
 
-        $this->features = settings('about.features', []);
+        $this->features = settings('features.items', []);
 
         // أول 3 مميزات
         $this->topFeatures = array_slice($this->features, 0, 3);
