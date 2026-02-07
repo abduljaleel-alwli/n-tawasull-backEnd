@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 // ---> Public Landing Page
 Volt::route('/', 'app.home.index')->name('home');
-Volt::route('/products', 'app.products.index')->name('products');
+Volt::route('/services', 'app.services.index')->name('services');
 Volt::route('/about', 'app.about.index')->name('about');
 Volt::route('/contact', 'app.contact.index')->name('contact');
 Volt::route('/clients', 'app.clients.index')->name('clients');
@@ -59,9 +59,9 @@ Route::middleware(['auth', 'verified', 'role:admin|super-admin'])
         Volt::route('/dashboard', 'admin.dashboard.dashboard')
             ->name('dashboard');
 
-        // Products Management
-        Volt::route('/products', 'admin.products.products-manager')
-            ->name('products');
+        // Services Management
+        Volt::route('/services', 'admin.services.services-manager')
+            ->name('services');
 
         // Projects Management
         Volt::route('/projects', 'admin.projects.projects-manager')

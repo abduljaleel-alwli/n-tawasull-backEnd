@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
-class ProductsSeeder extends Seeder
+class ServicesSeeder extends Seeder
 {
     public function run(): void
     {
@@ -16,7 +16,7 @@ class ProductsSeeder extends Seeder
             ->pluck('id', 'name')
             ->toArray();
 
-        $products = [
+        $services = [
             [
                 'title' => 'المواسير الحديدية',
                 'description' => 'المواسير الحديدية تُستخدم على نطاق واسع في الإنشاءات والهياكل المعدنية وشبكات المياه والدعامات الصناعية. تتميز بقوتها العالية وقدرتها على تحمل الضغط والأوزان المختلفة، مع دقة في السماكة والاستقامة. تتوفر بأقطار وسماكات متعددة لتناسب الاستخدامات السكنية والصناعية، وتُعد خيارًا مثاليًا للمشاريع التي تتطلب المتانة وطول العمر.',
@@ -124,11 +124,11 @@ class ProductsSeeder extends Seeder
 
         ];
 
-        foreach ($products as $index => $product) {
-            DB::table('products')->insert([
-                'title' => $product['title'],
-                'description' => $product['description'],
-                'category_id' => $categories[$product['category']] ?? null,
+        foreach ($services as $index => $service) {
+            DB::table('services')->insert([
+                'title' => $service['title'],
+                'description' => $service['description'],
+                'category_id' => $categories[$service['category']] ?? null,
 
                 'is_active' => true,
                 'display_order' => $index + 1,

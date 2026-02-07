@@ -69,7 +69,7 @@ class Project extends Model
     }
 
     /**
-     * Order products by display_order then newest.
+     * Order services by display_order then newest.
      */
     public function scopeOrdered($query)
     {

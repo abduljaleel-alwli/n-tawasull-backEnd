@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Category;
 use App\Models\User;
 
-class Product extends Model
+class Service extends Model
 {
     use HasFactory;
     use SoftDeletes;
@@ -55,7 +55,7 @@ class Product extends Model
     ===================== */
 
     /**
-     * Only active products.
+     * Only active Services.
      */
     public function scopeActive($query)
     {
@@ -63,7 +63,7 @@ class Product extends Model
     }
 
     /**
-     * Order products by display_order then newest.
+     * Order Services by display_order then newest.
      */
     public function scopeOrdered($query)
     {

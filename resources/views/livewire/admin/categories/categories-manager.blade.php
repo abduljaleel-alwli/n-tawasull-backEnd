@@ -11,7 +11,7 @@ new class extends Component {
     use AuthorizesRequests;
 
     public string $search = '';
-    public string $statusFilter = 'all'; // all | with-products | empty
+    public string $statusFilter = 'all'; // all | with-services | empty
 
     public $categories;
 
@@ -24,7 +24,7 @@ new class extends Component {
     public ?int $deleteId = null;
 
     public bool $showCannotDeleteModal = false;
-    public int $linkedProductsCount = 0;
+    public int $linkedServicesCount = 0;
 
     public function mount(): void
     {
@@ -46,21 +46,21 @@ new class extends Component {
     public function loadCategories(): void
     {
         $this->categories = Category::query()
-            ->withCount('products')
+            ->withCount('services')
             ->when(
                 $this->search,
                 fn($q) =>
                 $q->where('name', 'like', "%{$this->search}%")
             )
             ->when(
-                $this->statusFilter === 'with-products',
+                $this->statusFilter === 'with-services',
                 fn($q) =>
-                $q->having('products_count', '>', 0)
+                $q->having('services_count', '>', 0)
             )
             ->when(
                 $this->statusFilter === 'empty',
                 fn($q) =>
-                $q->having('products_count', '=', 0)
+                $q->having('services_count', '=', 0)
             )
             ->orderBy('name')
             ->get();
@@ -105,10 +105,10 @@ new class extends Component {
 
     public function askDelete(int $id): void
     {
-        $category = Category::withCount('products')->findOrFail($id);
+        $category = Category::withCount('services')->findOrFail($id);
 
-        if ($category->products_count > 0) {
-            $this->linkedProductsCount = $category->products_count;
+        if ($category->services_count > 0) {
+            $this->linkedServicesCount = $category->services_count;
             $this->showCannotDeleteModal = true;
             return;
         }
@@ -146,7 +146,7 @@ new class extends Component {
     public function closeCannotDeleteModal(): void
     {
         $this->showCannotDeleteModal = false;
-        $this->linkedProductsCount = 0;
+        $this->linkedServicesCount = 0;
     }
 
     private function resetForm(): void
@@ -192,19 +192,19 @@ new class extends Component {
         </button>
 
 
-        {{-- With products --}}
-        <button wire:click="$set('statusFilter','with-products')" class="text-left rounded-2xl p-4
+        {{-- With services --}}
+        <button wire:click="$set('statusFilter','with-services')" class="text-left rounded-2xl p-4
            bg-sky-500/10
            flex items-center justify-between
            transition
-           {{ $statusFilter === 'with-products'
+           {{ $statusFilter === 'with-services'
     ? 'ring-2 ring-sky-500/40'
     : 'hover:bg-sky-500/20' }}">
 
             <div>
-                <p class="text-xs text-sky-600">{{ __('With products') }}</p>
+                <p class="text-xs text-sky-600">{{ __('With services') }}</p>
                 <p class="text-2xl font-semibold text-sky-700">
-                    {{ $categories->where('products_count', '>', 0)->count() }}
+                    {{ $categories->where('services_count', '>', 0)->count() }}
                 </p>
             </div>
 
@@ -224,7 +224,7 @@ new class extends Component {
             <div>
                 <p class="text-xs text-slate-500">{{ __('Empty') }}</p>
                 <p class="text-2xl font-semibold text-slate-700 dark:text-slate-200">
-                    {{ $categories->where('products_count', 0)->count() }}
+                    {{ $categories->where('services_count', 0)->count() }}
                 </p>
             </div>
 
@@ -284,7 +284,7 @@ new class extends Component {
 
                 <tr>
                     <th class="px-4 py-3 text-left">{{ __('Name') }}</th>
-                    <th class="px-4 py-3 text-left">{{ __('Products') }}</th>
+                    <th class="px-4 py-3 text-left">{{ __('Services') }}</th>
                     <th class="px-4 py-3 text-right">{{ __('Actions') }}</th>
                 </tr>
             </thead>
@@ -299,13 +299,13 @@ new class extends Component {
                                 {{-- Badge --}}
                                 <td class="px-4 py-3">
                                     <span class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium
-                                {{ $category->products_count > 0
+                                {{ $category->services_count > 0
                     ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
                     : 'bg-slate-200/40 text-slate-500 dark:bg-slate-700/40 dark:text-slate-400' }}">
                                         <flux:icon name="cube" class="w-3.5 h-3.5" />
 
 
-                                        {{ $category->products_count }}
+                                        {{ $category->services_count }}
                                     </span>
                                 </td>
 
@@ -352,8 +352,8 @@ new class extends Component {
         :cancelAction="'wire:click=cancelDelete'" confirmLoadingTarget="confirmDelete" :confirmText="__('Delete')" />
 
     <x-modals.confirm :show="$showCannotDeleteModal" type="warning" :title="__('Cannot delete category')" :message="__(
-        'This category is linked to :count product(s). You must remove the category from those products before deleting it.',
-        ['count' => $linkedProductsCount],
+        'This category is linked to :count service(s). You must remove the category from those services before deleting it.',
+        ['count' => $linkedServicesCount],
     )" :confirmText="__('OK')"
         :confirmAction="'wire:click=closeCannotDeleteModal'" :cancelAction="'wire:click=closeCannotDeleteModal'" />
 

@@ -3,7 +3,8 @@
 namespace App\Services\Dashboard;
 
 use App\Models\User;
-use App\Models\Product;
+use App\Models\Service;
+use App\Models\Project;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use Illuminate\Notifications\DatabaseNotification;
@@ -63,14 +64,24 @@ class DashboardMetrics
         );
     }
 
-    public function totalProducts(): int
+    public function totalServices(): int
     {
         return Cache::remember(
-            $this->cacheKey('products'),
+            $this->cacheKey('services'),
             now()->addMinutes(5),
-            fn() => Product::count()
+            fn() => Service::count()
         );
     }
+
+    public function totalProjects(): int
+    {
+        return Cache::remember(
+            $this->cacheKey('projects'),
+            now()->addMinutes(5),
+            fn() => Project::count()
+        );
+    }
+
 
     public function totalVisits(): int
     {
@@ -447,7 +458,8 @@ public function conversionRate(): float
             fn() => [
                 // Core
                 'users' => $this->totalUsers(),
-                'products' => $this->totalProducts(),
+                'services' => $this->totalServices(),
+                'projects' => $this->totalProjects(),
                 'visits' => $this->totalVisits(),
                 'contacts' => $this->totalContactMessages(),
 

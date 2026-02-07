@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Models\Product;
+use App\Models\Service;
 use App\Models\User;
 
 class ProjectPolicy

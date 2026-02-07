@@ -30,9 +30,9 @@
         <flux:navlist variant="outline">
             <flux:navlist.group :heading="__('Manage')" class="grid">
 
-                <flux:navlist.item icon="cube" :href="route('admin.products')"
-                    :current="request()->routeIs('admin.products')" wire:navigate>
-                    {{ __('Products') }}
+                <flux:navlist.item icon="cube" :href="route('admin.services')"
+                    :current="request()->routeIs('admin.services')" wire:navigate>
+                    {{ __('Services') }}
                 </flux:navlist.item>
 
                 <flux:navlist.item icon="cube" :href="route('admin.projects')"

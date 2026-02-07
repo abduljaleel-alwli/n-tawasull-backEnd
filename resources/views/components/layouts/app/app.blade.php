@@ -80,9 +80,9 @@
                         </li>
 
                         <li class="nav-item">
-                            <a wire:navigate href="{{ route('products') }}"
-                                class="nav-link {{ request()->routeIs('products') ? 'active' : '' }}">
-                                منتجاتنا
+                            <a wire:navigate href="{{ route('services') }}"
+                                class="nav-link {{ request()->routeIs('services') ? 'active' : '' }}">
+                                خدماتنا
                             </a>
                         </li>
 
@@ -125,8 +125,8 @@
         <main class="home-main">
         @elseif (request()->is('about'))
             <main class="about-bg">
-            @elseif (request()->is('products'))
-                <main class="products-bg" id="products">
+            @elseif (request()->is('services'))
+                <main class="services-bg" id="services">
                 @elseif (request()->is('contact'))
                     <main id="contact" class="contact-bg">
                     @elseif (request()->is('clients'))
@@ -156,8 +156,8 @@
                         </li>
 
                         <li>
-                            <a wire:navigate href="{{ route('products') }}" class="accent-color">
-                                منتجاتنا
+                            <a wire:navigate href="{{ route('services') }}" class="accent-color">
+                                خدماتنا
                             </a>
                         </li>
 
@@ -235,8 +235,8 @@
         @include('partials.home.footer')
     @elseif (request()->is('about'))
         @include('partials.about.footer')
-    @elseif (request()->is('products'))
-        @include('partials.products.footer')
+    @elseif (request()->is('services'))
+        @include('partials.services.footer')
     @elseif (request()->is('contact'))
         @include('partials.contact.footer')
     @elseif (request()->is('clients'))

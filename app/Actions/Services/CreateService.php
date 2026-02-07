@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Actions\Products;
+namespace App\Actions\Services;
 
-use App\Models\Product;
+use App\Models\Service;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Support\Auditable;
 
-class CreateProduct
+class CreateService
 {
     use Auditable;
 
     /**
-     * Create a new product.
+     * Create a new service.
      */
-    public function execute(array $data): Product
+    public function execute(array $data): Service
     {
-        Gate::authorize('create', Product::class);
+        Gate::authorize('create', Service::class);
 
         return DB::transaction(function () use ($data) {
 
@@ -27,13 +27,13 @@ class CreateProduct
 
             $mainImagePath = null;
             if (!empty($data['main_image'])) {
-                $mainImagePath = $data['main_image']->store('products', 'public');
+                $mainImagePath = $data['main_image']->store('services', 'public');
             }
 
             $images = [];
             if (!empty($data['images']) && is_array($data['images'])) {
                 foreach ($data['images'] as $image) {
-                    $images[] = $image->store('products/gallery', 'public');
+                    $images[] = $image->store('services/gallery', 'public');
                 }
             }
 
@@ -41,13 +41,13 @@ class CreateProduct
                Display Order
             ===================== */
 
-            $nextOrder = (Product::max('display_order') ?? 0) + 1;
+            $nextOrder = (Service::max('display_order') ?? 0) + 1;
 
             /* ===================== 
-               Create Product
+               Create Service
             ===================== */
 
-            $product = Product::create([
+            $service = Service::create([
                 'title' => $data['title'],
                 'description' => $data['description'] ?? null,
                 'category_id' => $data['category_id'] ?? null,
@@ -63,11 +63,11 @@ class CreateProduct
                Audit
             ===================== */
 
-            $this->audit('product.created', $product, [
-                'title' => $product->title,
+            $this->audit('service.created', $service, [
+                'title' => $service->title,
             ]);
 
-            return $product;
+            return $service;
         });
     }
 }

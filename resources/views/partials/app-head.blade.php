@@ -14,31 +14,12 @@
     <link rel="icon" href="{{ asset('storage/' . $settings['branding.favicon']) }}">
 @endif
 
-<!-- Bootstrap RTL -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-{{-- <link href="assets/css/bootstrap.rtl.min.css" rel="stylesheet"> --}}
-
-<!-- Font -->
-<link href="https://fonts.bunny.net/css?family=Tajawal:400,500,600" rel="stylesheet" />
-
 <!-- Icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-@if (request()->is('/'))
-    @include('partials.home.head')
-@elseif (request()->is('about'))
-    @include('partials.about.head')
-@elseif (request()->is('products'))
-    @include('partials.products.head')
-@elseif (request()->is('contact'))
-    @include('partials.contact.head')
-@elseif (request()->is('clients'))
-    @include('partials.clients.head')
-@endif
-
-<link data-page-style rel="stylesheet" href="{{ asset('assets/css/mousecursor.css') }}">
+@include('partials.home.head')
 
 <style>
     :root {

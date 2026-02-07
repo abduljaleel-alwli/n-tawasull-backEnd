@@ -3,13 +3,13 @@
 use Livewire\Volt\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use App\Models\Product;
+use App\Models\Service;
 use App\Models\Category;
-use App\Actions\Products\CreateProduct;
-use App\Actions\Products\UpdateProduct;
-use App\Actions\Products\DeleteProduct;
-use App\Actions\Products\ToggleProductStatus;
-use App\Actions\Products\ReorderProducts;
+use App\Actions\Services\CreateService;
+use App\Actions\Services\UpdateService;
+use App\Actions\Services\DeleteService;
+use App\Actions\Services\ToggleServiceStatus;
+use App\Actions\Services\ReorderServices;
 
 new class extends Component {
     use WithFileUploads;
@@ -21,17 +21,17 @@ new class extends Component {
     public ?int $categoryFilter = null;
 
     /** Listing */
-    public $products;
+    public $services;
 
     /** Form state */
     public bool $showModal = false;
-    public ?Product $editing = null;
+    public ?Service $editing = null;
 
     public bool $showDeleteModal = false;
     public ?int $deleteId = null;
 
     public bool $showViewModal = false;
-    public ?Product $viewing = null;
+    public ?Service $viewing = null;
 
     public string $title = '';
     public string $description = '';
@@ -53,12 +53,12 @@ new class extends Component {
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        $this->loadProducts();
+        $this->loadServices();
     }
 
-    public function loadProducts(): void
+    public function loadServices(): void
     {
-        $this->products = Product::query()
+        $this->services = Service::query()
             ->when($this->search, function ($q) {
                 $q->where('title', 'like', "%{$this->search}%")->orWhere('description', 'like', "%{$this->search}%");
             })
@@ -71,17 +71,17 @@ new class extends Component {
 
     public function updatedSearch(): void
     {
-        $this->loadProducts();
+        $this->loadServices();
     }
 
     public function updatedStatusFilter(): void
     {
-        $this->loadProducts();
+        $this->loadServices();
     }
 
     public function updatedCategoryFilter(): void
     {
-        $this->loadProducts();
+        $this->loadServices();
     }
 
     public function create(): void
@@ -90,23 +90,23 @@ new class extends Component {
         $this->showModal = true;
     }
 
-    public function edit(Product $product): void
+    public function edit(Service $service): void
     {
-        $this->editing = $product;
+        $this->editing = $service;
 
-        $this->title = $product->title;
-        $this->description = (string) $product->description;
-        $this->category_id = $product->category_id;
-        $this->is_active = (bool) $product->is_active;
-        $this->display_order = (int) $product->display_order;
+        $this->title = $service->title;
+        $this->description = (string) $service->description;
+        $this->category_id = $service->category_id;
+        $this->is_active = (bool) $service->is_active;
+        $this->display_order = (int) $service->display_order;
 
         // تهيئة الـ tags
-        $this->tags = $product->tags ? implode(', ', json_decode($product->tags)) : '';
+        $this->tags = $service->tags ? implode(', ', json_decode($service->tags)) : '';
 
         $this->showModal = true;
     }
 
-    public function save(CreateProduct $create, UpdateProduct $update): void
+    public function save(CreateService $create, UpdateService $update): void
     {
         $data = $this->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -127,24 +127,24 @@ new class extends Component {
         if ($this->editing) {
             $update->execute($this->editing, $data);
 
-            $this->toast('success', __('Product updated successfully'));
+            $this->toast('success', __('Service updated successfully'));
         } else {
             $create->execute($data);
 
-            $this->toast('success', __('Product created successfully'));
+            $this->toast('success', __('Service created successfully'));
         }
 
         $this->closeModal();
-        $this->loadProducts();
+        $this->loadServices();
     }
 
-    public function toggle(ToggleProductStatus $toggle, Product $product): void
+    public function toggle(ToggleServiceStatus $toggle, Service $service): void
     {
-        $toggle->execute($product);
+        $toggle->execute($service);
 
-        $this->toast('success', $product->is_active ? __('Product activated successfully') : __('Product deactivated successfully'));
+        $this->toast('success', $service->is_active ? __('Service activated successfully') : __('Service deactivated successfully'));
 
-        $this->loadProducts();
+        $this->loadServices();
     }
 
     // Delete with confirmation modal
@@ -161,35 +161,35 @@ new class extends Component {
         $this->showDeleteModal = false;
     }
 
-    public function confirmDelete(DeleteProduct $delete): void
+    public function confirmDelete(DeleteService $delete): void
     {
         if (!$this->deleteId) {
             return;
         }
 
-        $product = Product::findOrFail($this->deleteId);
-        $delete->execute($product);
+        $service = Service::findOrFail($this->deleteId);
+        $delete->execute($service);
 
-        $this->toast('success', __('Product deleted successfully'));
+        $this->toast('success', __('Service deleted successfully'));
 
         $this->cancelDelete();
-        $this->loadProducts();
+        $this->loadServices();
     }
 
-    public function delete(DeleteProduct $delete, Product $product): void
+    public function delete(DeleteService $delete, Service $service): void
     {
-        $delete->execute($product);
+        $delete->execute($service);
 
-        $this->toast('success', __('Product deleted successfully'));
-        $this->loadProducts();
+        $this->toast('success', __('Service deleted successfully'));
+        $this->loadServices();
     }
 
     public function reorder(array $ids): void
     {
-        app(ReorderProducts::class)->execute($ids);
+        app(ReorderServices::class)->execute($ids);
 
-        $this->toast('success', __('Products reordered successfully'));
-        $this->loadProducts();
+        $this->toast('success', __('Services reordered successfully'));
+        $this->loadServices();
     }
 
     public function closeModal(): void
@@ -200,9 +200,9 @@ new class extends Component {
         $this->showModal = false;
     }
 
-    public function view(Product $product): void
+    public function view(Service $service): void
     {
-        $this->viewing = $product;
+        $this->viewing = $service;
         $this->showViewModal = true;
     }
 
@@ -247,9 +247,9 @@ new class extends Component {
                {{ $statusFilter === 'all' ? 'ring-2 ring-accent/40' : 'hover:bg-slate-50 dark:hover:bg-slate-800/60' }}">
 
             <div>
-                <p class="text-xs text-slate-500">{{ __('Total products') }}</p>
+                <p class="text-xs text-slate-500">{{ __('Total services') }}</p>
                 <p class="text-2xl font-semibold text-slate-900 dark:text-white">
-                    {{ $products->count() }}
+                    {{ $services->count() }}
                 </p>
             </div>
 
@@ -266,7 +266,7 @@ new class extends Component {
             <div>
                 <p class="text-xs text-emerald-600">{{ __('Active') }}</p>
                 <p class="text-2xl font-semibold text-emerald-700">
-                    {{ $products->where('is_active', true)->count() }}
+                    {{ $services->where('is_active', true)->count() }}
                 </p>
             </div>
 
@@ -283,7 +283,7 @@ new class extends Component {
             <div>
                 <p class="text-xs text-slate-500">{{ __('Inactive') }}</p>
                 <p class="text-2xl font-semibold text-slate-700 dark:text-slate-200">
-                    {{ $products->where('is_active', false)->count() }}
+                    {{ $services->where('is_active', false)->count() }}
                 </p>
             </div>
 
@@ -304,7 +304,7 @@ new class extends Component {
                 <flux:icon name="magnifying-glass" class="w-4 h-4" />
             </span>
 
-            <input wire:model.live="search" type="text" placeholder="{{ __('Search products...') }}"
+            <input wire:model.live="search" type="text" placeholder="{{ __('Search services...') }}"
                 class="w-full pl-9 pr-4 py-2 rounded-xl
                    border border-slate-200 dark:border-slate-800
                    bg-white dark:bg-slate-900
@@ -323,7 +323,7 @@ new class extends Component {
                    bg-slate-100 dark:bg-slate-800
                    text-slate-600 dark:text-slate-300">
                 <flux:icon name="shopping-bag" class="w-4 h-4" />
-                {{ __('Total') }}: {{ count($products) }}
+                {{ __('Total') }}: {{ count($services) }}
             </span>
 
             {{-- Add --}}
@@ -332,7 +332,7 @@ new class extends Component {
                    bg-accent text-white text-sm font-medium
                    hover:opacity-90 transition">
                 <flux:icon name="plus" class="w-4 h-4" />
-                {{ __('Add product') }}
+                {{ __('Add service') }}
             </button>
         </div>
 
@@ -377,7 +377,7 @@ new class extends Component {
     {{-- Mobile cards --}}
     <div class="md:hidden space-y-4">
 
-        @forelse ($products as $product)
+        @forelse ($services as $service)
             <div
                 class="rounded-2xl border border-slate-200 dark:border-slate-800
                    bg-white dark:bg-slate-900 p-4 space-y-4">
@@ -388,8 +388,8 @@ new class extends Component {
                         class="w-16 h-16 rounded-xl overflow-hidden
                             bg-slate-100 dark:bg-slate-800
                             ring-1 ring-slate-200 dark:ring-slate-700">
-                        @if ($product->main_image)
-                            <img src="{{ asset('storage/' . $product->main_image) }}"
+                        @if ($service->main_image)
+                            <img src="{{ asset('storage/' . $service->main_image) }}"
                                 class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-slate-400">
@@ -400,39 +400,39 @@ new class extends Component {
 
                     <div class="flex-1 min-w-0">
                         <h3 class="font-semibold text-slate-900 dark:text-white truncate">
-                            {{ $product->title }}
+                            {{ $service->title }}
                         </h3>
                         <p class="text-xs text-slate-500 truncate">
-                            {{ $product->category->name ?? __('No category') }}
+                            {{ $service->category->name ?? __('No category') }}
                         </p>
                     </div>
 
                     {{-- Status --}}
-                    <button wire:click="toggle({{ $product->id }})"
+                    <button wire:click="toggle({{ $service->id }})"
                         class="px-3 py-1 rounded-full text-xs font-medium
-                    {{ $product->is_active ? 'bg-emerald-500/15 text-emerald-600' : 'bg-slate-500/10 text-slate-500' }}">
-                        {{ $product->is_active ? __('Active') : __('Inactive') }}
+                    {{ $service->is_active ? 'bg-emerald-500/15 text-emerald-600' : 'bg-slate-500/10 text-slate-500' }}">
+                        {{ $service->is_active ? __('Active') : __('Inactive') }}
                     </button>
                 </div>
 
                 {{-- Meta --}}
                 <div class="flex items-center justify-between text-xs text-slate-500">
-                    <span>{{ __('Order') }}: {{ $product->display_order }}</span>
+                    <span>{{ __('Order') }}: {{ $service->display_order }}</span>
                 </div>
 
                 {{-- Actions --}}
                 <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-                    <button wire:click="view({{ $product->id }})"
+                    <button wire:click="view({{ $service->id }})"
                         class="p-2 rounded-lg text-accent hover:bg-accent/10">
                         <flux:icon name="eye" class="w-4 h-4" />
                     </button>
 
-                    <button wire:click="edit({{ $product->id }})"
+                    <button wire:click="edit({{ $service->id }})"
                         class="p-2 rounded-lg text-sky-600 hover:bg-sky-500/10">
                         <flux:icon name="pencil-square" class="w-4 h-4" />
                     </button>
 
-                    <button wire:click="askDelete({{ $product->id }})"
+                    <button wire:click="askDelete({{ $service->id }})"
                         class="p-2 rounded-lg text-red-500 hover:bg-red-500/10">
                         <flux:icon name="trash" class="w-4 h-4" />
                     </button>
@@ -440,13 +440,13 @@ new class extends Component {
             </div>
         @empty
             <div class="p-6 text-center text-slate-500">
-                {{ __('No products found') }}
+                {{ __('No services found') }}
             </div>
         @endforelse
 
     </div>
 
-    {{-- Products table --}}
+    {{-- Services table --}}
     <div wire:loading.remove wire:target="search,statusFilter,categoryFilter" class="hidden md:block">
 
         <div
@@ -477,8 +477,8 @@ new class extends Component {
                     }
                 })" class="divide-y divide-slate-100 dark:divide-slate-800">
 
-                    @forelse ($products as $product)
-                        <tr data-id="{{ $product->id }}" wire:key="product-{{ $product->id }}"
+                    @forelse ($services as $service)
+                        <tr data-id="{{ $service->id }}" wire:key="service-{{ $service->id }}"
                             class="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
 
                             {{-- Drag --}}
@@ -492,8 +492,8 @@ new class extends Component {
                                     class="w-14 h-14 rounded-lg overflow-hidden
                                    bg-slate-100 dark:bg-slate-800
                                    ring-1 ring-slate-200 dark:ring-slate-700">
-                                    @if ($product->main_image)
-                                        <img src="{{ asset('storage/' . $product->main_image) }}"
+                                    @if ($service->main_image)
+                                        <img src="{{ asset('storage/' . $service->main_image) }}"
                                             class="w-full h-full object-cover
                                            hover:scale-110 transition-transform">
                                     @else
@@ -506,23 +506,23 @@ new class extends Component {
 
                             {{-- Title --}}
                             <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">
-                                {{ $product->title }}
+                                {{ $service->title }}
                             </td>
 
                             {{-- Category --}}
                             <td class="px-4 py-3 text-slate-500">
-                                {{ $product->category->name ?? '—' }}
+                                {{ $service->category->name ?? '—' }}
                             </td>
 
                             {{-- Status --}}
                             <td class="px-4 py-3">
-                                <button wire:click="toggle({{ $product->id }})"
+                                <button wire:click="toggle({{ $service->id }})"
                                     class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
                                    text-xs font-medium transition
-                                   {{ $product->is_active
+                                   {{ $service->is_active
                                        ? 'bg-emerald-500/15 text-emerald-600 ring-1 ring-emerald-500/30'
                                        : 'bg-slate-500/10 text-slate-500 ring-1 ring-slate-500/30' }}">
-                                    @if ($product->is_active)
+                                    @if ($service->is_active)
                                         <flux:icon name="check" class="w-3.5 h-3.5" />
                                         {{ __('Active') }}
                                     @else
@@ -534,24 +534,24 @@ new class extends Component {
 
                             {{-- Order --}}
                             <td class="px-4 py-3 text-slate-500">
-                                {{ $product->display_order }}
+                                {{ $service->display_order }}
                             </td>
 
                             {{-- Actions --}}
                             <td class="px-4 py-3 text-right">
                                 <div class="inline-flex items-center gap-2">
 
-                                    <button wire:click="view({{ $product->id }})"
+                                    <button wire:click="view({{ $service->id }})"
                                         class="p-1.5 rounded-lg text-accent hover:bg-accent/10 transition">
                                         <flux:icon name="eye" class="w-4 h-4" />
                                     </button>
 
-                                    <button wire:click="edit({{ $product->id }})"
+                                    <button wire:click="edit({{ $service->id }})"
                                         class="p-1.5 rounded-lg text-sky-600 hover:bg-sky-500/10 transition">
                                         <flux:icon name="pencil-square" class="w-4 h-4" />
                                     </button>
 
-                                    <button wire:click="askDelete({{ $product->id }})"
+                                    <button wire:click="askDelete({{ $service->id }})"
                                         class="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition">
                                         <flux:icon name="trash" class="w-4 h-4" />
                                     </button>
@@ -562,7 +562,7 @@ new class extends Component {
                     @empty
                         <tr>
                             <td colspan="7" class="px-6 py-10 text-center text-slate-500">
-                                {{ __('No products found') }}
+                                {{ __('No services found') }}
                             </td>
                         </tr>
                     @endforelse
@@ -605,7 +605,7 @@ new class extends Component {
                            flex items-center justify-between">
 
                         <h3 class="text-lg font-semibold tracking-tight">
-                            {{ $editing ? __('Edit product') : __('Create product') }}
+                            {{ $editing ? __('Edit service') : __('Create service') }}
                         </h3>
 
                         <button wire:click="closeModal"
@@ -874,7 +874,7 @@ new class extends Component {
                     <div
                         class="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-slate-800">
                         <h3 class="text-lg font-semibold">
-                            {{ __('Product details') }}
+                            {{ __('Service details') }}
                         </h3>
 
                         <button type="button" wire:click="closeViewModal" wire:loading.attr="disabled"
@@ -1001,6 +1001,6 @@ new class extends Component {
 
 
     {{-- Delete Confirmation Modal --}}
-    <x-modals.confirm :show="$showDeleteModal" type="danger" :title="__('Delete product')" :message="__('Are you sure you want to delete this product? This action cannot be undone.')" :confirmAction="'wire:click=confirmDelete'"
+    <x-modals.confirm :show="$showDeleteModal" type="danger" :title="__('Delete service')" :message="__('Are you sure you want to delete this service? This action cannot be undone.')" :confirmAction="'wire:click=confirmDelete'"
         :cancelAction="'wire:click=cancelDelete'" confirmLoadingTarget="confirmDelete" :confirmText="__('Yes, delete')" />
 </div>

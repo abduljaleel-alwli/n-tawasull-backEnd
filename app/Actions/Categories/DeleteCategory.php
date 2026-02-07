@@ -15,9 +15,9 @@ class DeleteCategory
     {
         Gate::authorize('delete', $category);
 
-        if ($category->products()->exists()) {
+        if ($category->services()->exists()) {
             throw ValidationException::withMessages([
-                'category' => __('Cannot delete a category that has products'),
+                'category' => __('Cannot delete a category that has services'),
             ]);
         }
 

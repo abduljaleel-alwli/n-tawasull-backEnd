@@ -16,12 +16,12 @@ class DatabaseSeeder extends Seeder
         $this->call(RolesSeeder::class);
         $this->call(SettingsSeeder::class);
         // $this->call(CategoriesSeeder::class);
-        // $this->call(ProductsSeeder::class);
+        // $this->call(ServicesSeeder::class);
 
         $user = User::firstOrCreate(
             ['email' => 'info@n-tawasull.sa'],
             [
-                'name' => 'Aflaak (Super Admin)',
+                'name' => 'N-Tawasull (Super Admin)',
                 'password' => 'Password',
                 'email_verified_at' => now(),
             ]

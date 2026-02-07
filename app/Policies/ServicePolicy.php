@@ -2,13 +2,13 @@
 
 namespace App\Policies;
 
-use App\Models\Product;
+use App\Models\Service;
 use App\Models\User;
 
-class ProductPolicy
+class ServicePolicy
 {
     /**
-     * Create product.
+     * Create Service.
      */
     public function create(User $user): bool
     {
@@ -16,31 +16,31 @@ class ProductPolicy
     }
 
     /**
-     * Update product.
+     * Update Service.
      */
-    public function update(User $user, Product $product): bool
+    public function update(User $user, Service $service): bool
     {
         return $user->hasAnyRole(['admin', 'super-admin']);
     }
 
     /**
-     * Delete product (soft delete).
+     * Delete service (soft delete).
      */
-    public function delete(User $user, Product $product): bool
+    public function delete(User $user, Service $service): bool
     {
         return $user->hasAnyRole(['admin', 'super-admin']);
     }
 
     /**
-     * Toggle product active/inactive.
+     * Toggle service active/inactive.
      */
-    public function toggleActive(User $user, Product $product): bool
+    public function toggleActive(User $user, Service $service): bool
     {
         return $user->hasAnyRole(['admin', 'super-admin']);
     }
 
     /**
-     * Reorder products.
+     * Reorder services.
      */
     public function reorder(User $user): bool
     {

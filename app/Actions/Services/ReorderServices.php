@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Actions\Products;
+namespace App\Actions\Services;
 
-use App\Models\Product;
+use App\Models\Service;
 use App\Support\Auditable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
-class ReorderProducts
+class ReorderServices
 {
     use Auditable;
 
@@ -20,7 +20,7 @@ class ReorderProducts
 
         DB::transaction(function () use ($ids) {
             foreach ($ids as $index => $id) {
-                Product::where('id', $id)->update([
+                Service::where('id', $id)->update([
                     'display_order' => $index + 1,
                 ]);
             }

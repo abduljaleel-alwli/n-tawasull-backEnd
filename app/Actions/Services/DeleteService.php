@@ -1,52 +1,52 @@
 <?php
 
-namespace App\Actions\Products;
+namespace App\Actions\Services;
 
-use App\Models\Product;
+use App\Models\Service;
 use App\Support\Auditable;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
-class DeleteProduct
+class DeleteService
 {
     use Auditable;
 
-    public function execute(Product $product): void
+    public function execute(Service $service): void
     {
-        Gate::authorize('delete', $product);
+        Gate::authorize('delete', $service);
 
-        DB::transaction(function () use ($product) {
+        DB::transaction(function () use ($service) {
 
             /* =====================
                Delete Images
             ===================== */
 
-            if ($product->main_image) {
-                Storage::disk('public')->delete($product->main_image);
+            if ($service->main_image) {
+                Storage::disk('public')->delete($service->main_image);
             }
 
-            if (is_array($product->images)) {
-                foreach ($product->images as $image) {
+            if (is_array($service->images)) {
+                foreach ($service->images as $image) {
                     Storage::disk('public')->delete($image);
                 }
             }
 
             /* =====================
-               Soft Delete Product
+               Soft Delete Service
             ===================== */
 
-            $product->delete();
+            $service->delete();
 
             /* =====================
                Audit
             ===================== */
 
             $this->audit(
-                'product.deleted',
-                $product,
+                'service.deleted',
+                $service,
                 [
-                    'title' => $product->title,
+                    'title' => $service->title,
                 ]
             );
         });

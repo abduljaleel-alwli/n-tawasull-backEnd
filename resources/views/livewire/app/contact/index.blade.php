@@ -26,7 +26,7 @@ new class extends Component {
 };
 ?>
 
-<!-- Contact Us Section (AFLAAK) -->
+<!-- Contact Us Section (N-Tawasull) -->
 <div>
     <div class="contact-bg__overlay"></div>
 
@@ -38,7 +38,7 @@ new class extends Component {
             <!-- Left: Info -->
             <div class="af-card af-info-card">
                 <div class="af-info-head">
-                    <div class="af-badge">AFLAAK</div>
+                    <div class="af-badge">N-Tawasull</div>
                     @if ($title)
                         <h3 class="af-info-title">{{ $title }}</h3>
                     @endif

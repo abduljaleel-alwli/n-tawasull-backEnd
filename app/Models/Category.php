@@ -25,9 +25,9 @@ class Category extends Model
        Relationships
     ===================== */
 
-    public function products()
+    public function services()
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(Service::class);
     }
 
     public function projects()
