@@ -6,4 +6,5 @@ return [
     App\Providers\FortifyServiceProvider::class,
     App\Providers\VoltServiceProvider::class,
     App\Providers\ViewServiceProvider::class,
+    \L5Swagger\L5SwaggerServiceProvider::class
 ];

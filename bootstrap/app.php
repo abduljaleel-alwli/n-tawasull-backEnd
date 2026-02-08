@@ -27,6 +27,12 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureUserIsActive::class,
             \App\Http\Middleware\TrackPageView::class,
         ]);
+
+        // إضافة Middleware الخاص بـ CORS
+        $middleware->appendToGroup('api', [
+            \App\Http\Middleware\HandleCors::class,  // إضافة هذا السطر هنا
+        ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

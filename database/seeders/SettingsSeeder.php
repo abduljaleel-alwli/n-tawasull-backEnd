@@ -149,7 +149,7 @@ class SettingsSeeder extends Seeder
         );
 
         $s->set(
-            'features.items',
+            'feature.items',
             [
                 [
                     'title' => '',

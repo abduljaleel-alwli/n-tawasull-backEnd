@@ -9,22 +9,6 @@ use Illuminate\Support\Facades\Storage;
 
 // ---> Public Landing Page
 Volt::route('/', 'app.home.index')->name('home');
-Volt::route('/services', 'app.services.index')->name('services');
-Volt::route('/about', 'app.about.index')->name('about');
-Volt::route('/contact', 'app.contact.index')->name('contact');
-Volt::route('/clients', 'app.clients.index')->name('clients');
-
-// --> Analytics tracking endpoint
-Route::post('/analytics/track', function (Request $request) {
-    app(\App\Services\Analytics\AnalyticsService::class)->track(
-        $request->input('event'),
-        $request->all()
-    );
-
-    return response()->noContent();
-})
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
-    ->name('analytics.track');
 
 // --> Download link for the attached file via contactUs
 Route::get(

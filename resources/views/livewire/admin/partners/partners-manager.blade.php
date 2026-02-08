@@ -7,15 +7,11 @@ use Livewire\WithFileUploads;
 
 new class extends Component {
     use AuthorizesRequests;
-    use WithFileUploads;
 
     public string $badge = '';
 
     /** @var array<int, array{name:string,url:string,image:string|null}> */
     public array $items = [];
-
-    /** رفع صور مؤقتة لكل عنصر */
-    public array $newImages = []; // key = index => TemporaryUploadedFile
 
     public function mount(SettingsService $settings): void
     {
@@ -35,54 +31,24 @@ new class extends Component {
 
     public function addItem(): void
     {
-        $this->items[] = ['name' => '', 'url' => '', 'image' => null];
+        $this->items[] = ['name' => '', 'url' => '', 'image' => ''];
     }
 
     public function removeItem(int $index): void
     {
-        // لو في صورة جديدة مرفوعة ولم تُحفظ، امسحها من الذاكرة
-        unset($this->newImages[$index]);
-
         unset($this->items[$index]);
         $this->items = array_values($this->items);
-
-        // اعادة فهرسة صور الرفع المؤقتة لتطابق الفهارس الجديدة
-        $reindexed = [];
-        foreach ($this->newImages as $i => $file) {
-            if (is_numeric($i)) $reindexed[(int)$i] = $file;
-        }
-        $this->newImages = array_values($reindexed);
-    }
-
-    public function clearImage(int $index): void
-    {
-        $this->items[$index]['image'] = null;
-        unset($this->newImages[$index]);
     }
 
     public function save(SettingsService $settings): void
     {
         $this->validate([
             'badge' => ['required', 'string', 'max:255'],
-
             'items' => ['array'],
             'items.*.name' => ['required', 'string', 'max:255'],
             'items.*.url' => ['nullable', 'url', 'max:2048'],
             'items.*.image' => ['nullable', 'string', 'max:2048'],
-
-            // صور جديدة (اختيارية)
-            'newImages' => ['array'],
-            'newImages.*' => ['nullable', 'image', 'max:2048'], // 2MB
         ]);
-
-        // حفظ الصور الجديدة وحقن مساراتها داخل items
-        foreach ($this->newImages as $index => $file) {
-            if (!$file) continue;
-            if (!isset($this->items[$index])) continue;
-
-            $path = $file->store('partners', 'public'); // storage/app/public/partners
-            $this->items[$index]['image'] = $path;
-        }
 
         // تنظيف: تأكد القيم صحيحة
         $items = array_values(array_map(function ($row) {
@@ -96,13 +62,7 @@ new class extends Component {
         $settings->set('partner.badge', $this->badge, 'string', 'partner');
         $settings->set('partner.items', $items, 'json', 'partner');
 
-        $this->newImages = [];
-
-        $this->js("
-            window.dispatchEvent(new CustomEvent('toast', {
-                detail: { type: 'success', message: '" . __('Partners updated successfully') . "' }
-            }));
-        ");
+        $this->js("window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: '" . __('Partners updated successfully') . "' } }));");
     }
 };
 ?>
@@ -159,7 +119,7 @@ new class extends Component {
                     $hasError =
                         $errors->has("items.$index.name") ||
                         $errors->has("items.$index.url") ||
-                        $errors->has("newImages.$index");
+                        $errors->has("items.$index.image");
                 @endphp
 
                 <div class="rounded-xl border p-5 space-y-4 transition
@@ -203,23 +163,11 @@ new class extends Component {
                     {{-- Image --}}
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
                         <div class="lg:col-span-2">
-                            <label class="block text-xs text-slate-500 mb-1">{{ __('Logo') }}</label>
-
-                            <input type="file" accept="image/*" wire:model="newImages.{{ $index }}"
-                                   class="input w-full" />
-
-                            @error("newImages.$index") <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-
-                            <div class="mt-2 flex items-center gap-3">
-                                <button type="button" wire:click="clearImage({{ $index }})"
-                                        class="text-xs text-red-500 hover:underline">
-                                    {{ __('Remove logo') }}
-                                </button>
-
-                                <div wire:loading wire:target="newImages.{{ $index }}" class="text-xs text-slate-500">
-                                    {{ __('Uploading...') }}
-                                </div>
-                            </div>
+                            <label class="block text-xs text-slate-500 mb-1">{{ __('Logo (Optional)') }}</label>
+                            <input type="text" wire:model.defer="items.{{ $index }}.image"
+                                   class="input w-full @error("items.$index.image") ring-1 ring-red-500 @enderror"
+                                   placeholder="https://example.com/logo.png" />
+                            @error("items.$index.image") <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         {{-- Preview --}}
@@ -227,11 +175,8 @@ new class extends Component {
                             <label class="block text-xs text-slate-500 mb-1">{{ __('Preview') }}</label>
 
                             <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-4 flex items-center justify-center min-h-[110px]">
-                                @if (isset($newImages[$index]) && $newImages[$index])
-                                    <img src="{{ $newImages[$index]->temporaryUrl() }}"
-                                         class="max-h-16 object-contain" alt="preview" />
-                                @elseif (!empty($items[$index]['image']))
-                                    <img src="{{ asset('storage/' . $items[$index]['image']) }}"
+                                @if (!empty($items[$index]['image']))
+                                    <img src="{{ $items[$index]['image'] }}"
                                          class="max-h-16 object-contain" alt="preview" />
                                 @else
                                     <div class="text-xs text-slate-500">{{ __('No logo') }}</div>
