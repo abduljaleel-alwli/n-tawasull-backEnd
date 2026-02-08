@@ -24,9 +24,9 @@ class SettingsSeeder extends Seeder
         $s->set('branding.favicon', null, 'image', 'branding');
 
         // Colors
-        $s->set('colors.secondary', '#0d6efdf2', 'color', 'colors');
-        $s->set('colors.accent', '#FED403', 'color', 'colors');
-        $s->set('colors.background', '#0b1220', 'color', 'colors');
+        $s->set('colors.secondary', '#203C71', 'color', 'colors');
+        $s->set('colors.accent', '#EF7F17', 'color', 'colors');
+        $s->set('colors.background', '#f0f0f0', 'color', 'colors');
 
         // SEO
         $s->set('seo.meta_title', 'نقطة تواصل', 'string', 'seo');

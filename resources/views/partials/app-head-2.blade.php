@@ -22,11 +22,11 @@
 <style>
     :root {
         --secondary-color:
-            {{ $settings['colors.secondary'] ?? '#0d6efdf2' }};
+            {{ $settings['colors.secondary'] ?? '#203C71' }};
         --accent-color:
-            {{ $settings['colors.accent'] ?? '#FED403' }};
+            {{ $settings['colors.accent'] ?? '#EF7F17' }};
         --background-color:
-            {{ $settings['colors.background'] ?? '#0b1220' }};
+            {{ $settings['colors.background'] ?? '#f0f0f0' }};
 
         /* Reset App Colors */
         --yellow: var(--accent-color);

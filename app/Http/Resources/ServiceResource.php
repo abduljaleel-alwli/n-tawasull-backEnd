@@ -20,6 +20,7 @@ class ServiceResource extends JsonResource
 
         // Return the transformed data
         return [
+            'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
             'category' => $this->category ? $this->category->name : null, // Display category name

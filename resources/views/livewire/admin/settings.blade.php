@@ -137,6 +137,7 @@ new class extends Component {
         $this->authorize('access-dashboard');
 
         try {
+            Artisan::call('storage:unlink');
             Artisan::call('storage:link');
 
             $this->toastSuccess(__('Storage link created successfully'));

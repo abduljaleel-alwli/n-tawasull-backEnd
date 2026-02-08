@@ -22,11 +22,13 @@
         --v-color-secondary:
             {{ $settings['colors.secondary'] ?? '#0ea5e9' }}
         ;
+
+        
         --v-color-accent:
             {{ $settings['colors.accent'] ?? '#22c55e' }}
         ;
         --v-color-background:
-            {{ $settings['colors.background'] ?? '#0b1220' }}
+            {{ $settings['colors.background'] ?? '#f0f0f0' }}
         ;
     }
 
