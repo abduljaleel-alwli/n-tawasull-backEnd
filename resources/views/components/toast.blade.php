@@ -17,7 +17,7 @@
     x-on:toast.window="notify($event.detail)"
     x-show="show"
     x-transition.opacity.scale
-    class="fixed bottom-6 right-6 z-50 w-80"
+    class="fixed bottom-6 {{ app()->getLocale() === 'ar' ? 'left-6' : 'right-6' }} z-50 w-80"
     style="display: none"
 >
     <div
