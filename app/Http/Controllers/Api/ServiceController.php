@@ -62,7 +62,8 @@ class ServiceController extends Controller
 
         // Return the data in a structured response
         return response()->json([
-            'success' => true,
+            'code' => 200,
+            'status' => 'OK',
             'data' => ServiceResource::collection($services)
         ]);
     }
@@ -96,14 +97,16 @@ class ServiceController extends Controller
 
         if (!$service) {
             return response()->json([
-                'success' => false,
+                'code' => 404,
+                'status' => 'Not Found',
                 'message' => 'Service not found.'
             ], 404);
         }
 
         // Return the transformed service
         return response()->json([
-            'success' => true,
+            'code' => 200,
+            'status' => 'OK',
             'data' => new ServiceResource($service)
         ]);
     }

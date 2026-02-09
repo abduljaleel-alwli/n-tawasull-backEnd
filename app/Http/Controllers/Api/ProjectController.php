@@ -50,7 +50,8 @@ class ProjectController extends Controller
 
         // Return projects as JSON using the ProjectResource for formatting
         return response()->json([
-            'success' => true,
+            'code' => 200,
+            'status' => 'OK',
             'data' => ProjectResource::collection($projects)
         ]);
     }
@@ -83,7 +84,8 @@ class ProjectController extends Controller
         $project = Project::findOrFail($id);
 
         return response()->json([
-            'success' => true,
+            'code' => 200,
+            'status' => 'OK',
             'data' => new ProjectResource($project)
         ]);
     }

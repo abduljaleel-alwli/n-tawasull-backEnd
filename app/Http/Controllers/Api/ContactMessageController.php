@@ -94,7 +94,8 @@ class ContactMessageController extends Controller
 
         // Return the response
         return response()->json([
-            'success' => true,
+            'code' => 200,
+            'status' => 'OK',
             'message' => 'Your message has been sent successfully!',
             'data' => $contactMessage,
         ], 201);

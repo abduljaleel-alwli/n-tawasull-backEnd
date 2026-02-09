@@ -2,19 +2,15 @@
 
 namespace App\Services\Dashboard;
 
-use App\Models\User;
-use App\Models\Service;
 use App\Models\Project;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Carbon;
+use App\Models\Service;
+use App\Models\User;
 use Illuminate\Notifications\DatabaseNotification;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-
+use Illuminate\Support\Facades\DB;
 
 class DashboardMetrics
 {
-
     /* =========================
         CACHING KEYS
     ========================= */
@@ -31,7 +27,7 @@ class DashboardMetrics
     {
         // مثال: ["2026-01-03", "2026-01-02", ...] لكن نرجعها تصاعديًا
         return collect(range($days - 1, 0))
-            ->map(fn($i) => now()->subDays($i)->toDateString())
+            ->map(fn ($i) => now()->subDays($i)->toDateString())
             ->values()
             ->all();
     }
@@ -42,14 +38,14 @@ class DashboardMetrics
         $map = collect($rows)->mapWithKeys(function ($row) {
             $date = is_array($row) ? ($row['date'] ?? null) : ($row->date ?? null);
             $total = is_array($row) ? ($row['total'] ?? 0) : ($row->total ?? 0);
+
             return [$date => (int) $total];
         });
 
         return collect($dateKeys)
-            ->map(fn($d) => (int) ($map->get($d, 0)))
+            ->map(fn ($d) => (int) ($map->get($d, 0)))
             ->all();
     }
-
 
     /* =========================
        BASIC COUNTS
@@ -60,7 +56,7 @@ class DashboardMetrics
         return Cache::remember(
             $this->cacheKey('users'),
             now()->addMinutes(5),
-            fn() => User::count()
+            fn () => User::count()
         );
     }
 
@@ -69,7 +65,7 @@ class DashboardMetrics
         return Cache::remember(
             $this->cacheKey('services'),
             now()->addMinutes(5),
-            fn() => Service::count()
+            fn () => Service::count()
         );
     }
 
@@ -78,17 +74,16 @@ class DashboardMetrics
         return Cache::remember(
             $this->cacheKey('projects'),
             now()->addMinutes(5),
-            fn() => Project::count()
+            fn () => Project::count()
         );
     }
-
 
     public function totalVisits(): int
     {
         return Cache::remember(
             $this->cacheKey('visits'),
             now()->addMinutes(5),
-            fn() => DB::table('analytics_events')
+            fn () => DB::table('analytics_events')
                 ->where('event', 'page_view')
                 ->count()
         );
@@ -99,7 +94,7 @@ class DashboardMetrics
         return Cache::remember(
             $this->cacheKey('contacts'),
             now()->addMinutes(5),
-            fn() => DB::table('analytics_events')
+            fn () => DB::table('analytics_events')
                 ->where('event', 'contact_submitted')
                 ->count()
         );
@@ -108,7 +103,7 @@ class DashboardMetrics
 
     protected function sparklineFromCollection($collection): array
     {
-        return $collection->pluck('total')->map(fn($v) => (int) $v)->toArray();
+        return $collection->pluck('total')->map(fn ($v) => (int) $v)->toArray();
     }
 
     public function visitsSparkline(): array
@@ -132,7 +127,7 @@ class DashboardMetrics
         );
     }
 
-        public function visitsTrend(): int
+    public function visitsTrend(): int
     {
         $today = $this->todayVisits();
         $yesterday = $this->yesterdayVisits();
@@ -143,8 +138,6 @@ class DashboardMetrics
 
         return (int) round((($today - $yesterday) / $yesterday) * 100);
     }
-
-
 
     public function contactsSparkline(): array
     {
@@ -166,7 +159,6 @@ class DashboardMetrics
             }
         );
     }
-
 
     public function conversionTrend(): int
     {
@@ -205,7 +197,6 @@ class DashboardMetrics
         return (int) round((($thisRate - $lastRate) / $lastRate) * 100);
     }
 
-
     /* =========================
        CLICK EVENTS
     ========================= */
@@ -215,7 +206,7 @@ class DashboardMetrics
         return Cache::remember(
             $this->cacheKey('whatsapp_clicks'),
             now()->addMinutes(5),
-            fn() => DB::table('analytics_events')
+            fn () => DB::table('analytics_events')
                 ->where('event', 'whatsapp_click')
                 ->count()
         );
@@ -226,7 +217,7 @@ class DashboardMetrics
         return Cache::remember(
             $this->cacheKey('social_clicks'),
             now()->addMinutes(5),
-            fn() => DB::table('analytics_events')
+            fn () => DB::table('analytics_events')
                 ->where('event', 'social_click')
                 ->count()
         );
@@ -242,7 +233,7 @@ class DashboardMetrics
         return Cache::remember(
             $this->cacheKey("top_pages_{$limit}"),
             now()->addMinutes(10),
-            fn() => DB::table('analytics_events')
+            fn () => DB::table('analytics_events')
                 ->select('page', DB::raw('COUNT(*) as visits'))
                 ->where('event', 'page_view')
                 ->groupBy('page')
@@ -257,38 +248,37 @@ class DashboardMetrics
        Visitors → Contact
     ========================= */
 
-public function conversionRate(): float
-{
-    return Cache::remember(
-        $this->cacheKey('conversion_rate_this_week'),
-        now()->addMinutes(5),
-        function () {
-            $startOfWeek = now()->subWeek();
+    public function conversionRate(): float
+    {
+        return Cache::remember(
+            $this->cacheKey('conversion_rate_this_week'),
+            now()->addMinutes(5),
+            function () {
+                $startOfWeek = now()->subWeek();
 
-            $visits = DB::table('analytics_events')
-                ->where('event', 'page_view')
-                ->where('created_at', '>=', $startOfWeek)
-                ->count();
+                $visits = DB::table('analytics_events')
+                    ->where('event', 'page_view')
+                    ->where('created_at', '>=', $startOfWeek)
+                    ->count();
 
-            $contacts = DB::table('analytics_events')
-                ->where('event', 'contact_submitted')
-                ->where('created_at', '>=', $startOfWeek)
-                ->count();
+                $contacts = DB::table('analytics_events')
+                    ->where('event', 'contact_submitted')
+                    ->where('created_at', '>=', $startOfWeek)
+                    ->count();
 
-            return $visits === 0
-                ? 0
-                : round(($contacts / $visits) * 100, 2);
-        }
-    );
-}
-
+                return $visits === 0
+                    ? 0
+                    : round(($contacts / $visits) * 100, 2);
+            }
+        );
+    }
 
     public function funnel(): array
     {
         return Cache::remember(
             $this->cacheKey('funnel'),
             now()->addMinutes(5),
-            fn() => [
+            fn () => [
                 'visits' => $this->totalVisits(),
                 'contacts' => $this->totalContactMessages(),
                 'whatsapp_clicks' => $this->whatsappClicks(),
@@ -301,7 +291,7 @@ public function conversionRate(): float
         return Cache::remember(
             $this->cacheKey("top_sources_{$limit}"),
             now()->addMinutes(10),
-            fn() => DB::table('analytics_events')
+            fn () => DB::table('analytics_events')
                 ->selectRaw('COALESCE(NULLIF(source, ""), "unknown") as source, COUNT(*) as total')
                 ->where('event', 'contact_submitted')
                 ->groupBy('source')
@@ -311,23 +301,21 @@ public function conversionRate(): float
         );
     }
 
-
     public function isDashboardHealthy(): bool
     {
         return $this->todayVisits() > 0 || $this->todayContacts() > 0;
     }
 
     // public function lastAdminLogin()
-// {
-//     return Cache::remember(
-//         $this->cacheKey('last_admin_login'),
-//         now()->addMinutes(5),
-//         fn() => User::role('admin')
-//             ->orderByDesc('last_login_at')
-//             ->first(['name', 'last_login_at'])
-//     );
-// }
-
+    // {
+    //     return Cache::remember(
+    //         $this->cacheKey('last_admin_login'),
+    //         now()->addMinutes(5),
+    //         fn() => User::role('admin')
+    //             ->orderByDesc('last_login_at')
+    //             ->first(['name', 'last_login_at'])
+    //     );
+    // }
 
     /* =========================
        DAILY CHART
@@ -338,7 +326,7 @@ public function conversionRate(): float
         return Cache::remember(
             $this->cacheKey("daily_visits_{$days}"),
             now()->addMinutes(5),
-            fn() => DB::table('analytics_events')
+            fn () => DB::table('analytics_events')
                 ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
                 ->where('event', 'page_view')
                 ->where('created_at', '>=', now()->subDays($days))
@@ -353,7 +341,7 @@ public function conversionRate(): float
         return Cache::remember(
             $this->cacheKey('visits_today'),
             now()->addMinutes(2),
-            fn() => DB::table('analytics_events')
+            fn () => DB::table('analytics_events')
                 ->where('event', 'page_view')
                 ->whereDate('created_at', today())
                 ->count()
@@ -365,20 +353,19 @@ public function conversionRate(): float
         return Cache::remember(
             $this->cacheKey('visits_yesterday'),
             now()->addMinutes(2),
-            fn() => DB::table('analytics_events')
+            fn () => DB::table('analytics_events')
                 ->where('event', 'page_view')
                 ->whereDate('created_at', today()->subDay())
                 ->count()
         );
     }
 
-
     public function todayContacts(): int
     {
         return Cache::remember(
             $this->cacheKey('contacts_today'),
             now()->addMinutes(2),
-            fn() => DB::table('analytics_events')
+            fn () => DB::table('analytics_events')
                 ->where('event', 'contact_submitted')
                 ->whereDate('created_at', today())
                 ->count()
@@ -386,18 +373,17 @@ public function conversionRate(): float
     }
 
     // public function singlePageVisits(): int
-// {
-//     return Cache::remember(
-//         $this->cacheKey('single_page_visits'),
-//         now()->addMinutes(5),
-//         fn() => DB::table('analytics_events')
-//             ->where('event', 'page_view')
-//             ->whereNotNull('session_id')
-//             ->havingRaw('COUNT(*) = 1')
-//             ->count()
-//     );
-// }
-
+    // {
+    //     return Cache::remember(
+    //         $this->cacheKey('single_page_visits'),
+    //         now()->addMinutes(5),
+    //         fn() => DB::table('analytics_events')
+    //             ->where('event', 'page_view')
+    //             ->whereNotNull('session_id')
+    //             ->havingRaw('COUNT(*) = 1')
+    //             ->count()
+    //     );
+    // }
 
     /* =========================
        MONTHLY CHART
@@ -408,7 +394,7 @@ public function conversionRate(): float
         return Cache::remember(
             $this->cacheKey("monthly_visits_{$months}"),
             now()->addMinutes(10),
-            fn() => DB::table('analytics_events')
+            fn () => DB::table('analytics_events')
                 ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(*) as total')
                 ->where('event', 'page_view')
                 ->where('created_at', '>=', now()->subMonths($months))
@@ -417,7 +403,6 @@ public function conversionRate(): float
                 ->get()
         );
     }
-
 
     /* =========================
        ACTIVITY LOGS
@@ -439,12 +424,11 @@ public function conversionRate(): float
         return Cache::remember(
             $this->cacheKey("notifications_{$limit}"),
             now()->addMinutes(1),
-            fn() => DatabaseNotification::latest()
+            fn () => DatabaseNotification::latest()
                 ->limit($limit)
                 ->get()
         );
     }
-
 
     /* =========================
        ALL METRICS (ONE CALL)
@@ -455,7 +439,7 @@ public function conversionRate(): float
         return Cache::remember(
             $this->cacheKey('all'),
             now()->addMinutes(3),
-            fn() => [
+            fn () => [
                 // Core
                 'users' => $this->totalUsers(),
                 'services' => $this->totalServices(),
@@ -497,6 +481,4 @@ public function conversionRate(): float
             ]
         );
     }
-
-
 }

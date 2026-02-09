@@ -80,7 +80,8 @@ class SettingsController extends Controller
 
         // Return the data in a structured response
         return response()->json([
-            'success' => true,
+            'code' => 200,
+            'status' => 'OK',
             'data' => $settings
         ]);
     }
@@ -160,7 +161,8 @@ class SettingsController extends Controller
         $setting->makeHidden(['id', 'created_at', 'updated_at']);
 
         return response()->json([
-            'success' => true,
+            'code' => 200,
+            'status' => 'OK',
             'data' => $setting
         ]);
     }
