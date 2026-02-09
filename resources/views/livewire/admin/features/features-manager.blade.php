@@ -8,8 +8,8 @@ new class extends Component {
     use AuthorizesRequests;
 
     // Fields
+    public string $badge = '';
     public string $title = '';
-    public string $subtitle = '';
     public string $description = '';
 
     public bool $showIconPicker = false;
@@ -23,8 +23,8 @@ new class extends Component {
         // Only admin & super-admin (super-admin bypass via Gate::before)
         $this->authorize('access-dashboard');
 
+        $this->badge = (string) $settings->get('feature.badge', '');
         $this->title = (string) $settings->get('feature.title', '');
-        $this->subtitle = (string) $settings->get('feature.subtitle', '');
         $this->description = (string) $settings->get('feature.description', '');
 
         $this->features = (array) $settings->get('feature.items', []);
@@ -52,18 +52,23 @@ new class extends Component {
         $this->showIconPicker = true;
     }
 
-    public function selectIcon(string $icon): void
-    {
-        if ($this->iconPickerIndex === null) {
-            return;
-        }
+    
+    
+    // ---> ٍHandle icon selection from the icon picker (Save Icon as Flux icon type)
+    // public function selectIcon(string $icon): void
+    // {
+    //     if ($this->iconPickerIndex === null) {
+    //         return;
+    //     }
 
-        $this->features[$this->iconPickerIndex]['icon_type'] = 'flux';
-        $this->features[$this->iconPickerIndex]['icon_value'] = $icon;
+    //     $this->features[$this->iconPickerIndex]['icon_type'] = 'flux';
+    //     $this->features[$this->iconPickerIndex]['icon_value'] = $icon;
 
-        $this->showIconPicker = false;
-        $this->iconPickerIndex = null;
-    }
+    //     $this->showIconPicker = false;
+    //     $this->iconPickerIndex = null;
+    // }
+
+
 
     public function updatedFeatures($value, $key): void
     {
@@ -76,19 +81,19 @@ new class extends Component {
     public function save(SettingsService $settings): void
     {
         $this->validate([
+            'badge' => ['required', 'string', 'max:255'],
             'title' => ['required', 'string', 'max:255'],
-            'subtitle' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string'],
 
             'features' => ['array'],
             'features.*.title' => ['required', 'string', 'max:255'],
             'features.*.description' => ['required', 'string'],
-            'features.*.icon_type' => ['required', 'in:class,svg,flux'],
+            'features.*.icon_type' => ['required', 'in:class,svg'],
             'features.*.icon_value' => ['nullable', 'string'],
         ]);
 
+        $settings->set('feature.badge', $this->badge, 'string', 'features');
         $settings->set('feature.title', $this->title, 'string', 'features');
-        $settings->set('feature.subtitle', $this->subtitle, 'string', 'features');
         $settings->set('feature.description', $this->description, 'text', 'features');
         $settings->set('feature.items', $this->features, 'json', 'features');
 
@@ -132,6 +137,21 @@ new class extends Component {
             </h3>
         </div>
 
+        {{-- Badge --}}
+        <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1">
+                {{ __('Badge') }}
+            </label>
+
+            <input type="text" wire:model.defer="badge"
+                class="input w-full @error('badge') ring-1 ring-red-500 @enderror"
+                placeholder="{{ __('Features page badge') }}" />
+
+            @error('badge')
+                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
         {{-- Title --}}
         <div>
             <label class="block text-xs font-medium text-slate-500 mb-1">
@@ -145,18 +165,6 @@ new class extends Component {
             @error('title')
                 <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
             @enderror
-        </div>
-
-        {{-- Subtitle --}}
-        <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1">
-                {{ __('Subtitle') }}
-                <span class="text-slate-400">({{ __('Optional') }})</span>
-            </label>
-
-            <input type="text" wire:model.defer="subtitle"
-                class="input w-full @error('subtitle') ring-1 ring-red-500 @enderror"
-                placeholder="{{ __('Short subtitle under the title') }}" />
         </div>
 
         {{-- Description --}}
@@ -216,8 +224,8 @@ new class extends Component {
                             $featureHasError =
                                 $errors->has("features.$index.title") ||
                                 $errors->has("features.$index.description") ||
-                                $errors->has("features.$index.icon_type") ||
-                                $errors->has("features.$index.icon_value");
+                                $errors->has("features.$index.icon_value") ||
+                                $errors->has("features.$index.icon_type");
                         @endphp
 
                         <div
@@ -268,7 +276,7 @@ new class extends Component {
                                         class="input w-full">
                                         <option value="class">{{ __('Fontawesome') }}</option>
                                         <option value="svg">{{ __('SVG') }}</option>
-                                        <option value="flux">{{ __('Flux') }}</option>
+                                        <!-- <option value="flux">{{ __('Flux') }}</option> -->
                                     </select>
                                 </div>
 
@@ -281,9 +289,10 @@ new class extends Component {
                                         <input type="text"
                                             wire:model.defer="features.{{ $index }}.icon_value"
                                             class="input w-full" placeholder="fa-solid fa-star" />
-                                    @elseif (($features[$index]['icon_type'] ?? null) === 'flux')
+
+                                    {{-- @elseif (($features[$index]['icon_type'] ?? null) === 'flux')
                                         <livewire:icon-picker wire:model="features.{{ $index }}.icon_value"
-                                            :key="'icon-picker-' . $index" />
+                                            :key="'icon-picker-' . $index" /> --}}
                                     @else
                                         <textarea wire:model.defer="features.{{ $index }}.icon_value" class="textarea w-full font-mono text-xs"
                                             rows="3" placeholder="<svg>...</svg>"></textarea>

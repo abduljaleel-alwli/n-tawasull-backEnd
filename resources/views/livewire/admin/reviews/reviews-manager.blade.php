@@ -107,11 +107,9 @@ new class extends Component {
 
             'ratingText' => ['required', 'string', 'max:50'],
             'note' => ['nullable', 'string', 'max:500'],
-
             'stars' => ['required', 'integer', 'min:1', 'max:5'],
             'trustTitle' => ['nullable', 'string', 'max:255'],
             'trustSubtitle' => ['nullable', 'string', 'max:255'],
-
             'ctaLabel' => ['required', 'string', 'max:60'],
             'ctaUrl' => ['nullable', 'string', 'max:2048'],
 
@@ -124,20 +122,9 @@ new class extends Component {
             'items.*.name' => ['required', 'string', 'max:255'],
             'items.*.role' => ['nullable', 'string', 'max:255'],
             'items.*.avatar' => ['nullable', 'string', 'max:2048'],
-
-            'newAvatars' => ['array'],
-            'newAvatars.*' => ['nullable', 'image', 'max:2048'],
         ]);
 
-        // store new avatars for items
-        foreach ($this->newAvatars as $index => $file) {
-            if (!$file) continue;
-            if (!isset($this->items[$index])) continue;
-
-            $path = $file->store('reviews/avatars', 'public');
-            $this->items[$index]['avatar'] = $path;
-        }
-
+        // Keep using the URL provided for the avatar and don't attempt to upload images
         $summary = [
             'rating_text' => $this->ratingText,
             'note' => $this->note,
@@ -158,26 +145,21 @@ new class extends Component {
                 'quote' => trim((string) $row['quote']),
                 'name' => trim((string) $row['name']),
                 'role' => trim((string) ($row['role'] ?? '')),
-                'avatar' => $row['avatar'] ?: null,
+                'avatar' => $row['avatar'] ?: null, // Keep the avatar URL
             ];
         }, $this->items));
 
+        // Store the settings
         $settings->set('reviews.badge', $this->badge, 'string', 'reviews');
         $settings->set('reviews.title', $this->title, 'string', 'reviews');
         $settings->set('reviews.description', $this->description, 'text', 'reviews');
-
         $settings->set('reviews.summary', $summary, 'json', 'reviews');
         $settings->set('reviews.cta', $cta, 'json', 'reviews');
         $settings->set('reviews.items', $items, 'json', 'reviews');
 
-        $this->newAvatars = [];
-
-        $this->js("
-            window.dispatchEvent(new CustomEvent('toast', {
-                detail: { type: 'success', message: '" . __('Reviews updated successfully') . "' }
-            }));
-        ");
+        $this->js("window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: '" . __('Reviews updated successfully') . "' }}));");
     }
+
 };
 ?>
 
@@ -349,32 +331,23 @@ new class extends Component {
                         </div>
 
                         <div class="space-y-2">
-                            <label class="block text-xs text-slate-500">{{ __('Avatar') }}</label>
-                            <input type="file" accept="image/*" wire:model="newAvatars.{{ $index }}" class="input w-full" />
-                            <div class="flex items-center gap-3">
-                                <button type="button" wire:click="clearItemAvatar({{ $index }})"
-                                        class="text-xs text-red-500 hover:underline">
-                                    {{ __('Remove avatar') }}
-                                </button>
-                                <span wire:loading wire:target="newAvatars.{{ $index }}" class="text-xs text-slate-500">
-                                    {{ __('Uploading...') }}
-                                </span>
-                            </div>
+                    <label class="block text-xs text-slate-500">{{ __('Avatar URL') }}</label>
+                    <input wire:model.defer="items.{{ $index }}.avatar" class="input w-full" placeholder="https://example.com/avatar.jpg" />
+                    
+                    <!-- عند حفظ البيانات، إذا كان URL تم إدخاله في الحقل -->
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-slate-500">{{ __('No avatar uploaded') }}</span>
+                    </div>
 
-                            <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-3 flex items-center justify-center min-h-[80px]">
-                                @if(isset($newAvatars[$index]) && $newAvatars[$index])
-                                    <img src="{{ $newAvatars[$index]->temporaryUrl() }}" class="w-12 h-12 rounded-full object-cover" />
-                                @elseif(!empty($items[$index]['avatar']))
-                                    @php
-                                        $a = $items[$index]['avatar'];
-                                        $src = str_starts_with($a, 'http') ? $a : asset('storage/' . $a);
-                                    @endphp
-                                    <img src="{{ $src }}" class="w-12 h-12 rounded-full object-cover" />
-                                @else
-                                    <span class="text-xs text-slate-500">{{ __('No avatar') }}</span>
-                                @endif
-                            </div>
+                    <!-- عرض الصورة باستخدام الرابط المضاف -->
+                    @if(!empty($item['avatar']))
+                        <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-3 flex items-center justify-center min-h-[80px]">
+                            <img src="{{ $item['avatar'] }}" class="w-12 h-12 rounded-full object-cover" alt="Avatar" />
                         </div>
+                    @else
+                        <span class="text-xs text-slate-500">{{ __('No avatar') }}</span>
+                    @endif
+                </div>
                     </div>
 
                 </div>

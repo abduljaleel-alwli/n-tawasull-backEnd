@@ -68,7 +68,7 @@ new class extends Component {
                 'email_subject' => ['required', 'string', 'max:255'],
                 'social_links' => ['array'],
                 'social_links.*.platform' => ['required', 'string', 'max:50'],
-                'social_links.*.url' => ['required', 'url', 'max:500'],
+                'social_links.*.url' => ['required', 'string', 'max:500'],
                 'social_links.*.icon_type' => ['required', 'in:class,svg'],
                 'social_links.*.icon_value' => ['required', 'string'],
             ]);
@@ -153,10 +153,10 @@ new class extends Component {
 
             {{-- Badge --}}
             <div>
-                <label class="block text-xs text-slate-500 mb-1">{{ __('badge') }}</label>
-                <input wire:model.defer="badge"
+                <label class="block text-xs text-slate-500 mb-1">{{ __('Badge') }}</label>
+                <input wire:model.defer="badge" type="text"
                     class="input w-full focus:ring-accent/40 @error('badge') ring-1 ring-red-500 @enderror"
-                    placeholder="{{ __('Contact page badge') }}" />
+                    placeholder="{{ __('Contact badge') }}" />
                 @error('badge')
                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                 @enderror
@@ -165,7 +165,7 @@ new class extends Component {
             {{-- Title --}}
             <div>
                 <label class="block text-xs text-slate-500 mb-1">{{ __('Title') }}</label>
-                <input wire:model.defer="title"
+                <input wire:model.defer="title" type="text"
                     class="input w-full focus:ring-accent/40 @error('title') ring-1 ring-red-500 @enderror"
                     placeholder="{{ __('Contact page title') }}" />
                 @error('title')
