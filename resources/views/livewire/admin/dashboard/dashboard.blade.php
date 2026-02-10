@@ -111,7 +111,7 @@ new class extends Component {
             icon="signal" color="{{ $metrics['dashboard_health'] ? 'emerald' : 'rose' }}" />
         @endrole
 
-        <x-dashboard.card :title="__('Services')" :value="$metrics['services']" icon="cube" color="amber"
+        <x-dashboard.card :title="__('Services')" :value="$metrics['services']" icon="cube-transparent" color="amber"
             href="{{ route('admin.services') }}" />
 
         <x-dashboard.card :title="__('Projects')" :value="$metrics['projects']" icon="cube" color="amber"
