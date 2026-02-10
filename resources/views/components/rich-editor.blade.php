@@ -81,7 +81,7 @@
                         font-size: 15px;
                         line-height: 1.8;
                         padding: 14px 16px;
-                        ${isDark ? 'color:#e5e7eb;background:#f0f0f0;' : 'color:#0f172a;background:#ffffff;'}
+                        ${isDark ? 'color:#0f172a;background:#f0f0f0;' : 'color:#0f172a;background:#ffffff;'}
                     }
                     a{ color: ${isDark ? '#93c5fd' : '#2563eb'}; }
                     table{ border-collapse: collapse; width:100%; }

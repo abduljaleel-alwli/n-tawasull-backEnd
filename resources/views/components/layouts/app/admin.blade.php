@@ -30,7 +30,7 @@
         <flux:navlist variant="outline">
             <flux:navlist.group :heading="__('Manage')" class="grid">
 
-                <flux:navlist.item icon="cube" :href="route('admin.services')"
+                <flux:navlist.item icon="cube-transparent" :href="route('admin.services')"
                     :current="request()->routeIs('admin.services')" wire:navigate>
                     {{ __('Services') }}
                 </flux:navlist.item>
@@ -66,7 +66,7 @@
 
                 </flux:navlist.item>
 
-                <flux:navlist.item icon="envelope" :href="route('admin.newsletter')"
+                <flux:navlist.item icon="megaphone" :href="route('admin.newsletter')"
                     :current="request()->routeIs('admin.newsletter')" wire:navigate>
                     {{ __('Newsletter') }}
                 </flux:navlist.item>
@@ -78,12 +78,12 @@
         <flux:navlist variant="outline">
             <flux:navlist.group :heading="__('Pages')" class="grid">
 
-                <flux:navlist.item icon="rocket-launch" :href="route('admin.hero')"
+                <flux:navlist.item icon="fire" :href="route('admin.hero')"
                     :current="request()->routeIs('admin.hero')" wire:navigate>
                     {{ __('Hero') }}
                 </flux:navlist.item>
 
-                <flux:navlist.item icon="information-circle" :href="route('admin.features')"
+                <flux:navlist.item icon="sparkles" :href="route('admin.features')"
                     :current="request()->routeIs('admin.features')" wire:navigate>
                     {{ __('Features') }}
                 </flux:navlist.item>
@@ -98,7 +98,7 @@
                     {{ __('Reviews') }}
                 </flux:navlist.item>
 
-                <flux:navlist.item icon="question-mark-circle" :href="route('admin.faqs')"
+                <flux:navlist.item icon="book-open" :href="route('admin.faqs')"
                     :current="request()->routeIs('admin.faqs')" wire:navigate>
                     {{ __('FAQs') }}
                 </flux:navlist.item>

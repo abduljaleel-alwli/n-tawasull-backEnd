@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Service;
-use App\Http\Resources\ServiceResource;
+use App\Http\Resources\ServiceSummaryResource;
+use App\Http\Resources\ServiceDetailResource;
 use Illuminate\Http\Request;
 
 class ServiceController extends Controller
@@ -21,13 +22,6 @@ class ServiceController extends Controller
      *         required=false,
      *         @OA\Schema(type="integer")
      *     ),
-     *     @OA\Parameter(
-     *         name="is_active",
-     *         in="query",
-     *         description="Filter by active status",
-     *         required=false,
-     *         @OA\Schema(type="boolean")
-     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="List of services",
@@ -42,7 +36,7 @@ class ServiceController extends Controller
      *     )
      * )
      */
-    public function getServices(Request $request)
+    public function index(Request $request)
     {
         // Initialize the query
         $query = Service::query();
@@ -52,10 +46,8 @@ class ServiceController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
-        // Filter by active status if provided
-        if ($request->has('is_active')) {
-            $query->where('is_active', $request->is_active);
-        }
+        // تصفية الخدمات المفعلة فقط (حيث is_active = true)
+        $query->where('is_active', true);
 
         // Apply pagination
         $services = $query->paginate(10);  // 10 items per page, you can adjust this as needed
@@ -64,7 +56,7 @@ class ServiceController extends Controller
         return response()->json([
             'code' => 200,
             'status' => 'OK',
-            'data' => ServiceResource::collection($services)
+            'data' => ServiceSummaryResource::collection($services)
         ]);
     }
 
@@ -91,7 +83,7 @@ class ServiceController extends Controller
      *     )
      * )
      */
-    public function getServiceById($id)
+    public function show($id)
     {
         $service = Service::find($id);
 
@@ -103,11 +95,20 @@ class ServiceController extends Controller
             ], 404);
         }
 
+        // التأكد من أن الخدمة مفعّلة فقط
+        if (!$service->is_active) {
+            return response()->json([
+                'code' => 404,
+                'status' => 'Not Found',
+                'message' => 'Service not found or is inactive'
+            ], 404);
+        }
+
         // Return the transformed service
         return response()->json([
             'code' => 200,
             'status' => 'OK',
-            'data' => new ServiceResource($service)
+            'data' => new ServiceDetailResource($service)
         ]);
     }
 
@@ -121,7 +122,6 @@ class ServiceController extends Controller
      *     @OA\Property(property="tags", type="array", @OA\Items(type="string")),
      *     @OA\Property(property="main_image", type="string"),
      *     @OA\Property(property="images", type="array", @OA\Items(type="string")),
-     *     @OA\Property(property="is_active", type="boolean"),
      *     @OA\Property(property="display_order", type="integer"),
      * )
      */

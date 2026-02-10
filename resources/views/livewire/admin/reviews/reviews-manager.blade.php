@@ -279,7 +279,7 @@ new class extends Component {
     <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <flux:icon name="message" class="w-5 h-5 text-accent" />
+                <flux:icon name="chat-bubble-left-ellipsis" class="w-5 h-5 text-accent" />
                 <h3 class="text-base font-semibold text-slate-900 dark:text-white">{{ __('Reviews') }}</h3>
             </div>
 

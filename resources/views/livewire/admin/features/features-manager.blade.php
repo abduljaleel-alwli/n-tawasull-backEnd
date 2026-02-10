@@ -122,7 +122,7 @@ new class extends Component {
     @include('partials.settings-heading', [
         'title' => __('Features page'),
         'description' => __('Manage the content displayed on the Features page'),
-        'icon' => 'information-circle',
+        'icon' => 'sparkles',
     ])
 
     <div

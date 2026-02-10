@@ -167,13 +167,14 @@ select:focus-visible {
    Data states
 ================================ */
 .data-current\:text-\(--color-accent-content\)[data-current] {
-    color: var(--color-accent-content);
-    background-color: var(--v-color-theme-background-primary);
+    color: var(--v-color-accent);
+    background-color: #f0f0f0;
 }
-/* 
-body[data-theme='dark'] .data-current\:text-\(--color-accent-content\)[data-current] {
-    color: var(--color-accent-content);
-} */
+
+.dark .data-current\:text-\(--color-accent-content\)[data-current] {
+    color: var(--v-color-accent) !important;
+    background-color: var(--v-color-secondary) !important;
+}
 
 div[data-flux-main]{
     background-color: var(--v-color-theme-background-primary);

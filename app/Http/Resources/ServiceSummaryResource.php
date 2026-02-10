@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ServiceResource extends JsonResource
+class ServiceSummaryResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -23,11 +23,11 @@ class ServiceResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
-            'category' => $this->category ? $this->category->name : null, // Display category name
+            'category_id' => $this->category->id ?? null, // Return category ID for filtering
+            'category' => $this->category->name ?? null, // Display category name
             'tags' => $tags,
             'main_image' => $this->main_image,
             'images' => $images,
-            'is_active' => $this->is_active,
             'display_order' => $this->display_order,
         ];
     }

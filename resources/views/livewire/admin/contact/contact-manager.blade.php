@@ -119,7 +119,7 @@ new class extends Component {
     @include('partials.settings-heading', [
         'title' => __('Contact page'),
         'description' => __('Manage contact page information'),
-        'icon' => 'envelope',
+        'icon' => 'phone',
     ])
 
     {{-- ================= Main Contact Info ================= --}}

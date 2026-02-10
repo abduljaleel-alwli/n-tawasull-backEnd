@@ -176,8 +176,6 @@ class SettingsController extends Controller
      *     @OA\Property(property="value", type="string"),
      *     @OA\Property(property="type", type="string", enum={"json", "string"}),
      *     @OA\Property(property="group", type="string"),
-     *     @OA\Property(property="created_at", type="string", format="date-time"),
-     *     @OA\Property(property="updated_at", type="string", format="date-time")
      * )
      */
 }

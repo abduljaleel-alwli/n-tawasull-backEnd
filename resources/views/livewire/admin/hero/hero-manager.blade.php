@@ -111,13 +111,13 @@ new class extends Component {
     @include('partials.settings-heading', [
         'title' => __('Hero Section'),
         'description' => __('Manage the hero section including text, buttons, and images'),
-        'icon' => 'star',
+        'icon' => 'fire',
     ])
 
     {{-- Hero Header --}}
     <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-6 space-y-6">
         <div class="flex items-center gap-2">
-            <flux:icon name="star" class="w-5 h-5 text-accent" />
+            <flux:icon name="fire" class="w-5 h-5 text-accent" />
             <h3 class="text-base font-semibold text-slate-900 dark:text-white">{{ __('Header') }}</h3>
         </div>
 

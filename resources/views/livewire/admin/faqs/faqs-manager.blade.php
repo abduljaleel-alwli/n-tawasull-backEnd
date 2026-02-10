@@ -79,7 +79,7 @@ new class extends Component {
     @include('partials.settings-heading', [
         'title' => __('FAQs'),
         'description' => __('Manage frequently asked questions section'),
-        'icon' => 'question-mark-circle',
+        'icon' => 'book-open',
     ])
 
     {{-- Header --}}
