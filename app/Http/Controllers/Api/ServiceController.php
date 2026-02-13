@@ -50,7 +50,7 @@ class ServiceController extends Controller
         $query->where('is_active', true);
 
         // Apply pagination
-        $services = $query->paginate(10);  // 10 items per page, you can adjust this as needed
+        $services = $query->paginate(6);  // 10 items per page, you can adjust this as needed
 
         // Return the data in a structured response
         return response()->json([

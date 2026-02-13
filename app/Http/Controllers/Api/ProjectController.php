@@ -102,7 +102,7 @@ class ProjectController extends Controller
         $query->where('is_active', true);
 
         // Fetch all projects with pagination
-        $projects = $query->paginate(10);
+        $projects = $query->paginate(6);
 
         // Return projects as JSON using the ProjectSummaryResource for formatting
         return response()->json([
