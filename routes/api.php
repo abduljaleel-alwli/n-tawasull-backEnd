@@ -1,11 +1,11 @@
 <?php
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Api\NewsletterController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ContactMessageController;
-
 
 // --> Analytics tracking endpoint
 Route::post('/analytics/track', function (Request $request) {
