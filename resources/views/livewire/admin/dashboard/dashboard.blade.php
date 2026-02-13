@@ -1,15 +1,17 @@
 <?php
 
-use Livewire\Volt\Component;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Services\Dashboard\DashboardMetrics;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Livewire\Volt\Component;
 
-new class extends Component {
+new class extends Component
+{
     use AuthorizesRequests;
 
     public array $metrics = [];
 
     public string $chartRange = 'daily'; // daily | monthly
+
     public array $chart = [
         'categories' => [],
         'series' => [],
@@ -45,10 +47,11 @@ new class extends Component {
                 'series' => [
                     [
                         'name' => __('Visits'),
-                        'data' => $rows->pluck('total')->map(fn($v) => (int) $v)->values()->all(),
+                        'data' => $rows->pluck('total')->map(fn ($v) => (int) $v)->values()->all(),
                     ],
                 ],
             ];
+
             return;
         }
 
@@ -59,7 +62,7 @@ new class extends Component {
             'series' => [
                 [
                     'name' => __('Visits'),
-                    'data' => $rows->pluck('total')->map(fn($v) => (int) $v)->values()->all(),
+                    'data' => $rows->pluck('total')->map(fn ($v) => (int) $v)->values()->all(),
                 ],
             ],
         ];
@@ -116,6 +119,9 @@ new class extends Component {
 
         <x-dashboard.card :title="__('Projects')" :value="$metrics['projects']" icon="cube" color="amber"
             href="{{ route('admin.projects') }}" />
+
+        <x-dashboard.card :title="__('Newsletter')" :value="$metrics['newsletter']" icon="megaphone" color="amber"
+        href="{{ route('admin.newsletter') }}" />
 
         <x-dashboard.card :title="__('WhatsApp Clicks')" :value="$metrics['whatsapp_clicks']"
             icon="chat-bubble-left-right" color="green" />

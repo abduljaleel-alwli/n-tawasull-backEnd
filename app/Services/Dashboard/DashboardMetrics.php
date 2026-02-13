@@ -2,6 +2,7 @@
 
 namespace App\Services\Dashboard;
 
+use App\Models\NewsletterEmail;
 use App\Models\User;
 use App\Models\Service;
 use App\Models\Project;
@@ -76,6 +77,15 @@ class DashboardMetrics
             $this->cacheKey('projects'),
             now()->addMinutes(5),
             fn() => Project::count()
+        );
+    }
+
+    public function totalNewsletter(): int
+    {
+        return Cache::remember(
+            $this->cacheKey('newsletter'),
+            now()->addMinutes(5),
+            fn() => NewsletterEmail::count()
         );
     }
 
@@ -457,6 +467,7 @@ public function conversionRate(): float
                 'users' => $this->totalUsers(),
                 'services' => $this->totalServices(),
                 'projects' => $this->totalProjects(),
+                'newsletter' => $this->totalNewsletter(),
                 'visits' => $this->totalVisits(),
                 'contacts' => $this->totalContactMessages(),
 

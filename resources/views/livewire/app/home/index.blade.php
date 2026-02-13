@@ -1,1 +1,4 @@
-<h1 class="text-3xl font-bold">Welcome to Our Service Management</h1>
+<body class="bg-background text-[#111111]">
+    <div id="particles-js"></div>
+    <div id="root" class="relative z-10"></div>
+</body>

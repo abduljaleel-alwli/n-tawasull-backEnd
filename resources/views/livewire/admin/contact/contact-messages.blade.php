@@ -1,30 +1,38 @@
 <?php
 
-use Livewire\Volt\Component;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use App\Models\ContactMessage;
 use App\Actions\Contact\ReplyToContactMessage;
+use App\Models\ContactMessage;
 use App\Notifications\ContactMessageReplied;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Notification;
+use Livewire\Volt\Component;
 
-new class extends Component {
+new class extends Component
+{
     use AuthorizesRequests;
 
     public ?ContactMessage $selected = null;
+
     public ?int $selectedId = null;
 
     public array $selectedIds = [];
+
     public bool $selectAll = false;
 
     public string $filter = 'all'; // all | unread | read
+
     public string $tagFilter = 'all'; // all | sales | support | spam
+
     public string $search = '';
 
     public bool $showReplyModal = false;
+
     public string $replyMessage = '';
 
     public bool $showConfirmDelete = false;
+
     public bool $showConfirmDeleteSingle = false;
+
     public ?int $pendingDeleteId = null;
 
     public function mount(): void
@@ -63,7 +71,7 @@ new class extends Component {
 
     private function visibleIds(): array
     {
-        return $this->messages->pluck('id')->map(fn($v) => (int) $v)->values()->all();
+        return $this->messages->pluck('id')->map(fn ($v) => (int) $v)->values()->all();
     }
 
     /* =====================
@@ -86,7 +94,7 @@ new class extends Component {
     ===================== */
     public function getListKeyProperty(): string
     {
-        return md5($this->filter . '|' . $this->tagFilter . '|' . trim($this->search));
+        return md5($this->filter.'|'.$this->tagFilter.'|'.trim($this->search));
     }
 
     /* =====================
@@ -97,10 +105,12 @@ new class extends Component {
     {
         $this->resetSelectionState();
     }
+
     public function updatedTagFilter(): void
     {
         $this->resetSelectionState();
     }
+
     public function updatedSearch(): void
     {
         $this->resetSelectionState();
@@ -154,7 +164,7 @@ new class extends Component {
     ===================== */
     public function markSelectedAsRead(): void
     {
-        if (!count($this->selectedIds)) {
+        if (! count($this->selectedIds)) {
             return;
         }
 
@@ -175,7 +185,7 @@ new class extends Component {
 
     public function confirmDeleteSelected(): void
     {
-        if (!count($this->selectedIds)) {
+        if (! count($this->selectedIds)) {
             return;
         }
         $this->showConfirmDelete = true;
@@ -204,8 +214,9 @@ new class extends Component {
 
     public function deleteSingle(): void
     {
-        if (!$this->pendingDeleteId) {
+        if (! $this->pendingDeleteId) {
             $this->showConfirmDeleteSingle = false;
+
             return;
         }
 
@@ -221,7 +232,7 @@ new class extends Component {
         $this->showConfirmDeleteSingle = false;
 
         // remove from selection too
-        $this->selectedIds = array_values(array_filter($this->selectedIds, fn($v) => (int) $v !== $id));
+        $this->selectedIds = array_values(array_filter($this->selectedIds, fn ($v) => (int) $v !== $id));
         $this->updatedSelectedIds(); // re-sync selectAll
     }
 
@@ -231,7 +242,7 @@ new class extends Component {
     public function setTag(int $id, ?string $tag): void
     {
         $allowed = ['sales', 'support', 'spam', null];
-        if (!in_array($tag, $allowed, true)) {
+        if (! in_array($tag, $allowed, true)) {
             return;
         }
 
@@ -250,7 +261,7 @@ new class extends Component {
     ===================== */
     public function openReply(): void
     {
-        if (!$this->selected) {
+        if (! $this->selected) {
             return;
         }
 
@@ -268,7 +279,7 @@ new class extends Component {
 
     public function sendReply(ReplyToContactMessage $action): void
     {
-        if (!$this->selected) {
+        if (! $this->selected) {
             return;
         }
 
@@ -556,64 +567,48 @@ new class extends Component {
                         };
                     @endphp
 
-                    <div wire:key="message-{{ $message->id }}"
-                        class="px-4 py-3 flex gap-3 items-start
-                               transition-colors
-                               {{ $isActive ? 'bg-slate-50 dark:bg-slate-800/60' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40' }}">
-                        <input type="checkbox" wire:model.live="selectedIds" value="{{ $message->id }}"
-                            class="mt-1" />
+<div wire:key="message-{{ $message->id }}" class="px-4 py-3 flex gap-4 items-start transition-colors rounded-lg {{ $isActive ? 'bg-slate-50 dark:bg-slate-800/60' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40' }}">
+    <div class="flex-shrink-0 flex items-center justify-center">
+        <input type="checkbox" wire:model.live="selectedIds" value="{{ $message->id }}" class="mt-1" />
+    </div>
 
-                        <button type="button" wire:click="viewMessage({{ $message->id }})"
-                            class="text-left flex-1">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="min-w-0">
-                                    <p
-                                        class="text-sm font-medium truncate
-                                        {{ $isUnread ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-200' }}">
-                                        {{ $message->name }}
-                                    </p>
-                                    <p class="text-xs text-slate-500 truncate">
-                                        {{ Str::limit($message->message, 60) }}
-                                    </p>
-                                </div>
+    <button type="button" wire:click="viewMessage({{ $message->id }})" class="w-full text-left">
+        <div class="flex items-start justify-between gap-3">
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium truncate {{ $isUnread ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-200' }}">
+                    {{ $message->name }}
+                </p>
+                <p class="text-xs text-slate-500 truncate">
+                    {{ Str::limit($message->message, 60) }}
+                </p>
+            </div>
 
-                                <div class="flex items-center gap-2 shrink-0">
-                                    @if ($tagBadge)
-                                        <span
-                                            class="px-2 py-1 rounded-full text-[11px] font-medium {{ $tagBadge['bg'] }} {{ $tagBadge['text'] }}">
-                                            {{ $tagBadge['label'] }}
-                                        </span>
-                                    @endif
+            <div class="flex items-center gap-2 shrink-0">
+                @if ($tagBadge)
+                    <span class="px-2 py-1 rounded-full text-[11px] font-medium {{ $tagBadge['bg'] }} {{ $tagBadge['text'] }}">
+                        {{ $tagBadge['label'] }}
+                    </span>
+                @endif
 
-                                    {{-- Replied badge --}}
-                                    @if ($isReplied)
-                                        <span
-                                            class="inline-flex items-center gap-1 px-2 py-1 rounded-full
-                   bg-emerald-500/10 text-emerald-600
-                   text-[11px] font-medium">
+                @if ($isReplied)
+                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-[11px] font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15l3.75-4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {{ __('Replied') }}
+                    </span>
+                @elseif ($isUnread)
+                    <span class="mt-1 w-2 h-2 rounded-full bg-accent"></span>
+                @endif
+            </div>
+        </div>
 
-                                            {{-- Heroicon: Check Circle --}}
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5"
-                                                fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                                stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M9 12.75L11.25 15l3.75-4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
+        <p class="mt-2 text-[11px] text-slate-400">
+            {{ $message->created_at->diffForHumans() }}
+        </p>
+    </button>
+</div>
 
-                                            {{ __('Replied') }}
-                                        </span>
-                                    @elseif ($isUnread)
-                                        {{-- Unread dot --}}
-                                        <span class="mt-1 w-2 h-2 rounded-full bg-accent"></span>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <p class="mt-2 text-[11px] text-slate-400">
-                                {{ $message->created_at->diffForHumans() }}
-                            </p>
-                        </button>
-                    </div>
                 @empty
                     <div class="p-8 text-center text-sm text-slate-500">
                         {{ __('No messages found') }}
@@ -805,12 +800,27 @@ new class extends Component {
                     <div
                         class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                         <h3 class="text-base font-semibold">
-                            {{ __('Reply') }}
+                            {{ __('Reply to') }}: {{ $selected?->name }}
                         </h3>
-                        <button wire:click="closeReply"
-                            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
-                            aria-label="{{ __('Close') }}">
-                            ✕
+                        <button type="button" wire:click="closeReply" wire:loading.attr="disabled"
+                            wire:target="closeReply"
+                            class="w-full sm:w-auto px-4 py-2 rounded-xl
+                               bg-slate-200 hover:bg-slate-300
+                               dark:bg-slate-800 dark:hover:bg-slate-700
+                               text-slate-900 dark:text-slate-100
+                               inline-flex items-center justify-center gap-2
+                               disabled:opacity-60 disabled:cursor-not-allowed" aria-label="{{ __('Close') }}">
+                            <svg wire:loading wire:target="closeReply" class="h-4 w-4 animate-spin"
+                                viewBox="0 0 24 24" fill="none">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+                                </path>
+                            </svg>
+
+                            <span wire:loading.remove wire:target="closeReply">
+                                ✕
+                            </span>
                         </button>
                     </div>
 
@@ -850,14 +860,47 @@ new class extends Component {
 
                     <div
                         class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
-                        <button wire:click="closeReply"
-                            class="px-4 py-2 rounded-lg text-sm bg-slate-200 dark:bg-slate-800 hover:opacity-80 transition">
-                            {{ __('Cancel') }}
+                        <button type="button" wire:click="closeReply" wire:loading.attr="disabled"
+                            wire:target="closeReply"
+                            class="w-full sm:w-auto px-4 py-2 rounded-xl
+                               bg-slate-200 hover:bg-slate-300
+                               dark:bg-slate-800 dark:hover:bg-slate-700
+                               text-slate-900 dark:text-slate-100
+                               inline-flex items-center justify-center gap-2
+                               disabled:opacity-60 disabled:cursor-not-allowed">
+                            <svg wire:loading wire:target="closeReply" class="h-4 w-4 animate-spin"
+                                viewBox="0 0 24 24" fill="none">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+                                </path>
+                            </svg>
+
+                            <span wire:loading.remove wire:target="closeReply">
+                                {{ __('Cancel') }}
+                            </span>
+                            <span wire:loading wire:target="closeReply">
+                                {{ __('Closing...') }}
+                            </span>
                         </button>
 
-                        <button wire:click="sendReply"
+                        <button type="button" wire:click="sendReply" wire:loading.attr="disabled"
+                            wire:target="sendReply"
                             class="px-4 py-2 rounded-lg text-sm bg-accent text-white hover:opacity-90 transition">
-                            {{ __('Send') }}
+                            <svg wire:loading wire:target="sendReply" class="h-4 w-4 animate-spin"
+                                viewBox="0 0 24 24" fill="none">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+                                </path>
+                            </svg>
+
+                            <span wire:loading.remove wire:target="sendReply">
+                                {{ __('Send') }}
+                            </span>
+                            <span wire:loading wire:target="sendReply">
+                                {{ __('Sending...') }}
+                            </span>
                         </button>
                     </div>
                 </div>

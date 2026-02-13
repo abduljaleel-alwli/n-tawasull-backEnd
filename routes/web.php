@@ -17,7 +17,7 @@ Route::get(
 
         abort_unless($contactMessage->attachment_path, 404);
 
-        $disk = Storage::disk('private');
+        $disk = Storage::disk('public');
 
         abort_unless(
             $disk->exists($contactMessage->attachment_path),
