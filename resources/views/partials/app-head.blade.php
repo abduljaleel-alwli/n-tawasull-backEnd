@@ -1,22 +1,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>نقطة تواصل | شريكك التسويقي الاستراتيجي</title>
-<link rel="icon" type="image/png" href="/logo.png">
+<link rel="icon" type="image/png" href="./assets/logo-TYz3t8qI.png">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
     tailwind.config = {
-    theme: {
-        extend: {
-        colors: {
-            primary: 'var(--primary)',
-            secondary: 'var(--secondary)',
-            background: 'var(--background)',
+        theme: {
+            extend: {
+                colors: {
+                    primary: 'var(--primary)',
+                    secondary: 'var(--secondary)',
+                    background: 'var(--background)',
+                }
+            }
         }
-        }
-    }
     }
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
 
 <!-- FontAwesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -60,17 +61,22 @@
 
     /* Customize Mouse Follower Identity */
     .mf-cursor {
-        color: var(--secondary); /* Text color inside cursor */
+        color: var(--secondary);
+        /* Text color inside cursor */
         z-index: 1000;
     }
+
     .mf-cursor:before {
-        background: var(--primary); /* Main circle color */
+        background: var(--primary);
+        /* Main circle color */
         opacity: 0.15;
     }
+
     .mf-cursor.-text:before {
         opacity: 1;
         background: var(--primary);
     }
+
     .mf-cursor.-pointer:before {
         transform: scale(2);
         opacity: 0.1;
@@ -86,11 +92,13 @@
         transform: translateY(-100vh) !important;
         opacity: 0 !important;
     }
+
     .home-hidden-bottom {
         transform: translateY(100vh);
         opacity: 0;
         transition: none !important;
     }
+
     .home-visible {
         transform: translateY(0);
         opacity: 1;
@@ -102,11 +110,13 @@
         opacity: 0;
         pointer-events: none;
     }
+
     .detail-active {
         transform: translateY(0);
         opacity: 1;
         pointer-events: auto;
     }
+
     .detail-exit-up {
         transform: translateY(-100vh) !important;
         opacity: 0 !important;
@@ -117,8 +127,8 @@
     .reveal {
         opacity: 0;
         transform: translateY(30px);
-        transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
-                    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         will-change: transform, opacity;
     }
 
@@ -129,18 +139,39 @@
 
     /* Initial Entrance Animations */
     @keyframes entranceSlideDown {
-        from { transform: translateY(-100%); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
+        from {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
     }
 
     @keyframes entranceSlideUp {
-        from { transform: translateY(40px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
+        from {
+            transform: translateY(40px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
     }
 
     @keyframes entranceScaleUp {
-        from { transform: scale(0.95) translateY(20px); opacity: 0; }
-        to { transform: scale(1) translateY(0); opacity: 1; }
+        from {
+            transform: scale(0.95) translateY(20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
     }
 
     .animate-entrance-down {
@@ -149,7 +180,7 @@
 
     .animate-entrance-up {
         animation: entranceSlideUp 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        opacity: 0; 
+        opacity: 0;
     }
 
     .animate-entrance-scale {
@@ -158,38 +189,100 @@
     }
 
     /* Staggered delay helpers */
-    .delay-100 { animation-delay: 100ms; }
-    .delay-200 { animation-delay: 200ms; }
-    .delay-300 { animation-delay: 300ms; }
-    .delay-400 { animation-delay: 400ms; }
-    .delay-500 { animation-delay: 500ms; }
-    .delay-600 { animation-delay: 600ms; }
-    .delay-700 { animation-delay: 700ms; }
-    .delay-800 { animation-delay: 800ms; }
-    .delay-900 { animation-delay: 900ms; }
-    .delay-1000 { animation-delay: 1000ms; }
-    .delay-1200 { animation-delay: 1200ms; }
-    .delay-1400 { animation-delay: 1400ms; }
-    .delay-1600 { animation-delay: 1600ms; }
-    .delay-1800 { animation-delay: 1800ms; }
-    .delay-2000 { animation-delay: 2000ms; }
-    .delay-2200 { animation-delay: 2200ms; }
-    .delay-2400 { animation-delay: 2400ms; }
-    .delay-2600 { animation-delay: 2600ms; }
-    .delay-2800 { animation-delay: 2800ms; }
-    .delay-3000 { animation-delay: 3000ms; }
+    .delay-100 {
+        animation-delay: 100ms;
+    }
+
+    .delay-200 {
+        animation-delay: 200ms;
+    }
+
+    .delay-300 {
+        animation-delay: 300ms;
+    }
+
+    .delay-400 {
+        animation-delay: 400ms;
+    }
+
+    .delay-500 {
+        animation-delay: 500ms;
+    }
+
+    .delay-600 {
+        animation-delay: 600ms;
+    }
+
+    .delay-700 {
+        animation-delay: 700ms;
+    }
+
+    .delay-800 {
+        animation-delay: 800ms;
+    }
+
+    .delay-900 {
+        animation-delay: 900ms;
+    }
+
+    .delay-1000 {
+        animation-delay: 1000ms;
+    }
+
+    .delay-1200 {
+        animation-delay: 1200ms;
+    }
+
+    .delay-1400 {
+        animation-delay: 1400ms;
+    }
+
+    .delay-1600 {
+        animation-delay: 1600ms;
+    }
+
+    .delay-1800 {
+        animation-delay: 1800ms;
+    }
+
+    .delay-2000 {
+        animation-delay: 2000ms;
+    }
+
+    .delay-2200 {
+        animation-delay: 2200ms;
+    }
+
+    .delay-2400 {
+        animation-delay: 2400ms;
+    }
+
+    .delay-2600 {
+        animation-delay: 2600ms;
+    }
+
+    .delay-2800 {
+        animation-delay: 2800ms;
+    }
+
+    .delay-3000 {
+        animation-delay: 3000ms;
+    }
 
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
         width: 8px;
     }
+
     ::-webkit-scrollbar-track {
         background: var(--background);
     }
+
     ::-webkit-scrollbar-thumb {
         background: #d1d1d1;
         border-radius: 10px;
     }
+
     ::-webkit-scrollbar-thumb:hover {
         background: #bbbbbb;
     }
@@ -200,7 +293,13 @@
 
     /* Ensure interactive elements show they are clickable even with custom cursor (Desktop Only) */
     @media (min-width: 769px) {
-        a, button, [role="button"], input, textarea, select {
+
+        a,
+        button,
+        [role="button"],
+        input,
+        textarea,
+        select {
             cursor: none !important;
         }
     }
@@ -213,6 +312,7 @@
     }
 </style>
 
+<link rel="stylesheet" href="/index.css">
 <script type="importmap">
 {
   "imports": {
@@ -225,5 +325,4 @@
   }
 }
 </script>
-
-<script type="module" crossorigin src="/assets/js/index-7UaOFGQ_.js"></script>
+<script type="module" crossorigin src="./assets/js/index-C5XSThoH.js"></script>
